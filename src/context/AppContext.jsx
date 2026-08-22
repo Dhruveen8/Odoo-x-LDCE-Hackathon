@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { INITIAL_USER, INITIAL_TRIPS, ADMIN_STATS } from '../data/initialData';
 import { DESTINATIONS, PRESET_ACTIVITIES } from '../data/destinations';
+import { VEHICLES_DATA, VEHICLE_TYPES, TRANSMISSION_TYPES, FUEL_TYPES, SEAT_OPTIONS } from '../data/vehicleData';
+import { TOUR_GUIDES_DATA, GUIDE_SPECIALIZATIONS, GUIDE_LANGUAGES } from '../data/tourGuideData';
 
 const AppContext = createContext();
 
@@ -45,17 +47,20 @@ export function AppProvider({ children }) {
 
   // Trips state
   const [trips, setTrips] = useState(() => {
-    const saved = localStorage.getItem('gt_trips');
+    const saved = localStorage.getItem('gt_trips_v2');
     return saved ? JSON.parse(saved) : INITIAL_TRIPS;
   });
 
   useEffect(() => {
-    localStorage.setItem('gt_trips', JSON.stringify(trips));
+    localStorage.setItem('gt_trips_v2', JSON.stringify(trips));
   }, [trips]);
 
   // Active view navigation
   const [currentView, setCurrentView] = useState('dashboard');
   const [activeTripId, setActiveTripId] = useState('trip-grand-europe');
+
+  // Selected stop context for cross-navigation to vehicle/guide explorers
+  const [selectedStopContext, setSelectedStopContext] = useState(null);
 
   // Notifications toast
   const [toasts, setToasts] = useState([]);
@@ -93,11 +98,13 @@ export function AppProvider({ children }) {
       startDate: newTripData.startDate || new Date().toISOString().split('T')[0],
       endDate: newTripData.endDate || new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
       status: "Upcoming",
-      targetBudget: Number(newTripData.targetBudget) || 2000,
+      targetBudget: Number(newTripData.targetBudget) || 2500,
       transportBudget: Number(newTripData.transportBudget) || 500,
       lodgingBudget: Number(newTripData.lodgingBudget) || 800,
       foodBudget: Number(newTripData.foodBudget) || 400,
       activitiesBudget: Number(newTripData.activitiesBudget) || 300,
+      vehiclesBudget: Number(newTripData.vehiclesBudget) || 300,
+      guidesBudget: Number(newTripData.guidesBudget) || 200,
       isPublic: true,
       shareSlug: `${newTripData.title?.toLowerCase().replace(/\s+/g, '-') || 'trip'}-${Date.now().toString().slice(-4)}`,
       likesCount: 0,
@@ -139,7 +146,7 @@ export function AppProvider({ children }) {
     return cloned;
   };
 
-  // Stops & Activities Management
+  // Stops Management
   const addStopToTrip = (tripId, cityData) => {
     const trip = trips.find(t => t.id === tripId);
     if (!trip) return;
@@ -157,7 +164,9 @@ export function AppProvider({ children }) {
       transitMode: "Train / Flight",
       transitCost: 120,
       order: (trip.stops?.length || 0) + 1,
-      activities: []
+      activities: [],
+      vehicleRentals: [],
+      guideBookings: []
     };
 
     const updatedStops = [...(trip.stops || []), newStop];
@@ -173,6 +182,21 @@ export function AppProvider({ children }) {
     addToast("Stop Removed", "Stop removed from itinerary.", "info");
   };
 
+  const updateStopDetails = (tripId, stopId, fields) => {
+    const trip = trips.find(t => t.id === tripId);
+    if (!trip) return;
+
+    const updatedStops = trip.stops.map(stop => {
+      if (stop.id === stopId) {
+        return { ...stop, ...fields };
+      }
+      return stop;
+    });
+
+    updateTrip(tripId, { stops: updatedStops });
+  };
+
+  // Activities Management
   const addActivityToStop = (tripId, stopId, activityData) => {
     const trip = trips.find(t => t.id === tripId);
     if (!trip) return;
@@ -220,6 +244,161 @@ export function AppProvider({ children }) {
     addToast("Activity Removed", "Activity removed from day plan.", "info");
   };
 
+  // ═══════════════════════════════════════════════
+  // Vehicle Rental Management
+  // ═══════════════════════════════════════════════
+  const addVehicleRentalToStop = (tripId, stopId, rentalData) => {
+    const trip = trips.find(t => t.id === tripId);
+    if (!trip) return;
+
+    const rentalDays = Math.max(1, Number(rentalData.rentalDays) || 1);
+    const dailyRate = Number(rentalData.dailyRate) || 0;
+    const totalCost = Number(rentalData.totalCost) || (dailyRate * rentalDays);
+
+    const newRental = {
+      id: `v-rent-${Date.now()}`,
+      vehicleId: rentalData.vehicleId || `veh-${Date.now()}`,
+      name: rentalData.name || "Rental Vehicle",
+      model: rentalData.model || "Standard",
+      type: rentalData.type || "SUV",
+      seats: Number(rentalData.seats) || 5,
+      transmission: rentalData.transmission || "Automatic",
+      fuelType: rentalData.fuelType || "Petrol",
+      provider: rentalData.provider || "Local Rental Partner",
+      rating: rentalData.rating || 4.8,
+      image: rentalData.image || "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=900&q=80",
+      startDate: rentalData.startDate || trip.startDate,
+      endDate: rentalData.endDate || trip.endDate,
+      rentalDays,
+      dailyRate,
+      totalCost
+    };
+
+    const updatedStops = trip.stops.map(stop => {
+      if (stop.id === stopId) {
+        return {
+          ...stop,
+          vehicleRentals: [...(stop.vehicleRentals || []), newRental]
+        };
+      }
+      return stop;
+    });
+
+    updateTrip(tripId, { stops: updatedStops });
+    addToast("Vehicle Added! 🚗", `Reserved ${newRental.name} (${formatCurrency(totalCost)})`, "success");
+  };
+
+  const removeVehicleRentalFromStop = (tripId, stopId, rentalId) => {
+    const trip = trips.find(t => t.id === tripId);
+    if (!trip) return;
+
+    const updatedStops = trip.stops.map(stop => {
+      if (stop.id === stopId) {
+        return {
+          ...stop,
+          vehicleRentals: (stop.vehicleRentals || []).filter(v => v.id !== rentalId)
+        };
+      }
+      return stop;
+    });
+
+    updateTrip(tripId, { stops: updatedStops });
+    addToast("Rental Removed", "Vehicle rental removed from stop.", "info");
+  };
+
+  const updateVehicleRental = (tripId, stopId, rentalId, updatedData) => {
+    const trip = trips.find(t => t.id === tripId);
+    if (!trip) return;
+
+    const updatedStops = trip.stops.map(stop => {
+      if (stop.id === stopId) {
+        return {
+          ...stop,
+          vehicleRentals: (stop.vehicleRentals || []).map(v => v.id === rentalId ? { ...v, ...updatedData } : v)
+        };
+      }
+      return stop;
+    });
+
+    updateTrip(tripId, { stops: updatedStops });
+    addToast("Rental Updated", "Vehicle reservation details updated.", "success");
+  };
+
+  // ═══════════════════════════════════════════════
+  // Tour Guide Management
+  // ═══════════════════════════════════════════════
+  const addGuideBookingToStop = (tripId, stopId, bookingData) => {
+    const trip = trips.find(t => t.id === tripId);
+    if (!trip) return;
+
+    const rate = Number(bookingData.rate) || 0;
+    const totalCost = Number(bookingData.totalCost) || rate;
+
+    const newBooking = {
+      id: `g-book-${Date.now()}`,
+      guideId: bookingData.guideId || `guide-${Date.now()}`,
+      name: bookingData.name || "Local Tour Guide",
+      avatar: bookingData.avatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80",
+      specialization: bookingData.specialization || "Historical & Architecture",
+      languages: bookingData.languages || ["English"],
+      rating: bookingData.rating || 4.9,
+      date: bookingData.date || trip.startDate,
+      duration: bookingData.duration || "Full Day (8h)",
+      rate,
+      totalCost,
+      notes: bookingData.notes || "Private local guided experience"
+    };
+
+    const updatedStops = trip.stops.map(stop => {
+      if (stop.id === stopId) {
+        return {
+          ...stop,
+          guideBookings: [...(stop.guideBookings || []), newBooking]
+        };
+      }
+      return stop;
+    });
+
+    updateTrip(tripId, { stops: updatedStops });
+    addToast("Guide Booked! 🧭", `Booked ${newBooking.name} (${formatCurrency(totalCost)})`, "success");
+  };
+
+  const removeGuideBookingFromStop = (tripId, stopId, bookingId) => {
+    const trip = trips.find(t => t.id === tripId);
+    if (!trip) return;
+
+    const updatedStops = trip.stops.map(stop => {
+      if (stop.id === stopId) {
+        return {
+          ...stop,
+          guideBookings: (stop.guideBookings || []).filter(g => g.id !== bookingId)
+        };
+      }
+      return stop;
+    });
+
+    updateTrip(tripId, { stops: updatedStops });
+    addToast("Guide Booking Removed", "Tour guide booking removed from stop.", "info");
+  };
+
+  const updateGuideBooking = (tripId, stopId, bookingId, updatedData) => {
+    const trip = trips.find(t => t.id === tripId);
+    if (!trip) return;
+
+    const updatedStops = trip.stops.map(stop => {
+      if (stop.id === stopId) {
+        return {
+          ...stop,
+          guideBookings: (stop.guideBookings || []).map(g => g.id === bookingId ? { ...g, ...updatedData } : g)
+        };
+      }
+      return stop;
+    });
+
+    updateTrip(tripId, { stops: updatedStops });
+    addToast("Guide Booking Updated", "Guide appointment details updated.", "success");
+  };
+
   const reorderStops = (tripId, sourceIndex, destIndex) => {
     const trip = trips.find(t => t.id === tripId);
     if (!trip) return;
@@ -228,7 +407,6 @@ export function AppProvider({ children }) {
     const [moved] = newStops.splice(sourceIndex, 1);
     newStops.splice(destIndex, 0, moved);
 
-    // Update order key
     const reindexed = newStops.map((s, idx) => ({ ...s, order: idx + 1 }));
     updateTrip(tripId, { stops: reindexed });
   };
@@ -246,25 +424,51 @@ export function AppProvider({ children }) {
   // Active Trip Helper
   const activeTrip = trips.find(t => t.id === activeTripId) || trips[0];
 
-  // Trip Budget Computed stats
+  // ═══════════════════════════════════════════════
+  // 6-Category Trip Budget Engine
+  // ═══════════════════════════════════════════════
   const computeTripFinances = (trip) => {
-    if (!trip) return { totalEstimated: 0, lodging: 0, transit: 0, activities: 0, isOverBudget: false, remaining: 0 };
+    if (!trip) {
+      return {
+        totalEstimated: 0,
+        lodging: 0,
+        transit: 0,
+        activities: 0,
+        food: 0,
+        vehicleRentals: 0,
+        tourGuides: 0,
+        target: 2000,
+        isOverBudget: false,
+        remaining: 2000
+      };
+    }
     
     let lodging = 0;
     let transit = 0;
     let activities = 0;
+    let vehicleRentals = 0;
+    let tourGuides = 0;
 
     trip.stops?.forEach(s => {
       lodging += Number(s.lodgingCost) || 0;
       transit += Number(s.transitCost) || 0;
+      
       s.activities?.forEach(a => {
         activities += Number(a.cost) || 0;
       });
+
+      s.vehicleRentals?.forEach(v => {
+        vehicleRentals += Number(v.totalCost) || (Number(v.dailyRate || 0) * Number(v.rentalDays || 1));
+      });
+
+      s.guideBookings?.forEach(g => {
+        tourGuides += Number(g.totalCost) || Number(g.rate || 0);
+      });
     });
 
-    const food = (trip.foodBudget || 400);
-    const totalEstimated = lodging + transit + activities + food;
-    const target = trip.targetBudget || 2000;
+    const food = Number(trip.foodBudget) || 400;
+    const totalEstimated = lodging + transit + activities + food + vehicleRentals + tourGuides;
+    const target = Number(trip.targetBudget) || 3000;
     const isOverBudget = totalEstimated > target;
     const remaining = target - totalEstimated;
 
@@ -274,6 +478,8 @@ export function AppProvider({ children }) {
       transit,
       activities,
       food,
+      vehicleRentals,
+      tourGuides,
       target,
       isOverBudget,
       remaining
@@ -292,10 +498,20 @@ export function AppProvider({ children }) {
       activeTripId,
       setActiveTripId,
       activeTrip,
+      selectedStopContext,
+      setSelectedStopContext,
       currentView,
       setCurrentView,
       destinations: DESTINATIONS,
       presetActivities: PRESET_ACTIVITIES,
+      vehiclesData: VEHICLES_DATA,
+      vehicleTypes: VEHICLE_TYPES,
+      transmissionTypes: TRANSMISSION_TYPES,
+      fuelTypes: FUEL_TYPES,
+      seatOptions: SEAT_OPTIONS,
+      tourGuidesData: TOUR_GUIDES_DATA,
+      guideSpecializations: GUIDE_SPECIALIZATIONS,
+      guideLanguages: GUIDE_LANGUAGES,
       adminStats: ADMIN_STATS,
       toasts,
       addToast,
@@ -307,8 +523,15 @@ export function AppProvider({ children }) {
       cloneTrip,
       addStopToTrip,
       removeStopFromTrip,
+      updateStopDetails,
       addActivityToStop,
       removeActivityFromStop,
+      addVehicleRentalToStop,
+      removeVehicleRentalFromStop,
+      updateVehicleRental,
+      addGuideBookingToStop,
+      removeGuideBookingFromStop,
+      updateGuideBooking,
       reorderStops,
       toggleWishlist,
       computeTripFinances

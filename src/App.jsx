@@ -14,6 +14,8 @@ import ItineraryBuilderView from './views/ItineraryBuilderView';
 import ItineraryDetailView from './views/ItineraryDetailView';
 import CitySearchView from './views/CitySearchView';
 import ActivitySearchView from './views/ActivitySearchView';
+import VehicleRentalView from './views/VehicleRentalView';
+import TourGuideView from './views/TourGuideView';
 import BudgetView from './views/BudgetView';
 import CalendarView from './views/CalendarView';
 import PublicTripView from './views/PublicTripView';
@@ -43,6 +45,10 @@ function AppContent() {
         return <CitySearchView />;
       case 'activity-search':
         return <ActivitySearchView />;
+      case 'vehicles':
+        return <VehicleRentalView />;
+      case 'guides':
+        return <TourGuideView />;
       case 'budget':
         return <BudgetView />;
       case 'calendar':
@@ -74,6 +80,9 @@ function AppContent() {
           marginLeft:  'var(--sidebar-w)',
           paddingTop:  isDashboard ? 0 : 'var(--navbar-h)',
           minHeight:   '100vh',
+          paddingLeft: isDashboard ? 0 : '28px',
+          paddingRight: isDashboard ? 0 : '28px',
+          paddingBottom: '60px'
         }}
       >
         <AnimatePresence mode="wait">

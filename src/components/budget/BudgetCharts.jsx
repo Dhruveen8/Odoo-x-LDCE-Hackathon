@@ -1,6 +1,19 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { PieChart as PieIcon, TrendingUp, AlertTriangle, CheckCircle2, ShieldCheck, DollarSign } from 'lucide-react';
+import { 
+  PieChart as PieIcon, 
+  TrendingUp, 
+  AlertTriangle, 
+  CheckCircle2, 
+  ShieldCheck, 
+  DollarSign,
+  Hotel,
+  Train,
+  Sparkles,
+  Utensils,
+  Car,
+  Compass
+} from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 export default function BudgetCharts({ trip }) {
@@ -8,10 +21,12 @@ export default function BudgetCharts({ trip }) {
   const finances = computeTripFinances(trip);
 
   const categories = [
-    { name: 'Lodging / Stay', value: finances.lodging, color: '#6366f1' },
-    { name: 'Transit & Flights', value: finances.transit, color: '#06b6d4' },
-    { name: 'Activities & Tours', value: finances.activities, color: '#ec4899' },
-    { name: 'Meals & Dining', value: finances.food, color: '#f59e0b' }
+    { name: 'Accommodation', value: finances.lodging, color: '#6366f1', icon: Hotel },
+    { name: 'Transportation', value: finances.transit, color: '#06b6d4', icon: Train },
+    { name: 'Activities', value: finances.activities, color: '#ec4899', icon: Sparkles },
+    { name: 'Meals & Dining', value: finances.food, color: '#f59e0b', icon: Utensils },
+    { name: 'Vehicle Rental', value: finances.vehicleRentals, color: '#8b5cf6', icon: Car },
+    { name: 'Tour Guide', value: finances.tourGuides, color: '#10b981', icon: Compass }
   ];
 
   const total = Math.max(1, finances.totalEstimated);
@@ -35,19 +50,19 @@ export default function BudgetCharts({ trip }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
       
-      {/* Category Donut Chart Card */}
-      <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {/* ── 6-Category Donut Chart Card ── */}
+      <div className="liquid-glass" style={{ padding: '24px', borderRadius: 'var(--r-lg)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <PieIcon size={20} color="var(--brand-primary)" />
-            <h4 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Expense Breakdown</h4>
+            <PieIcon size={20} color="var(--brand-indigo)" />
+            <h4 style={{ fontSize: '1.1rem', fontWeight: 700 }}>6-Category Cost Allocation</h4>
           </div>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Categorized</span>
+          <span className="badge-tag primary">Live Ledger</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
           {/* Donut graphic */}
-          <div style={{ position: 'relative', width: '160px', height: '160px' }}>
+          <div style={{ position: 'relative', width: '170px', height: '170px' }}>
             <svg viewBox="-1.2 -1.2 2.4 2.4" style={{ transform: 'rotate(-90deg)', width: '100%', height: '100%' }}>
               {slices.map((slice, i) => {
                 if (slice.value === 0) return null;
@@ -67,64 +82,72 @@ export default function BudgetCharts({ trip }) {
                     fill={slice.color}
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    transition={{ duration: 0.5, delay: i * 0.1 }}
+                    transition={{ duration: 0.5, delay: i * 0.08 }}
                   />
                 );
               })}
               {/* Center cutout */}
-              <circle r="0.65" fill="var(--bg-secondary)" />
+              <circle r="0.68" fill="var(--bg-app)" />
             </svg>
             <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>TOTAL</div>
-              <div style={{ fontSize: '1rem', fontWeight: 800 }}>{formatCurrency(finances.totalEstimated)}</div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.05em' }}>TOTAL COST</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#fff' }}>{formatCurrency(finances.totalEstimated)}</div>
             </div>
           </div>
 
           {/* Legend */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1, minWidth: '160px' }}>
-            {categories.map((cat, idx) => (
-              <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: cat.color }} />
-                  <span style={{ color: 'var(--text-secondary)' }}>{cat.name}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, minWidth: '180px' }}>
+            {categories.map((cat, idx) => {
+              const Icon = cat.icon;
+              const percentShare = Math.round((cat.value / total) * 100) || 0;
+              return (
+                <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.84rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: cat.color }} />
+                    <Icon size={13} color={cat.color} />
+                    <span style={{ color: 'var(--text-secondary)' }}>{cat.name}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontWeight: 700 }}>{formatCurrency(cat.value)}</span>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>({percentShare}%)</span>
+                  </div>
                 </div>
-                <span style={{ fontWeight: 700 }}>{formatCurrency(cat.value)}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* Target Budget Progress & Overbudget Guard */}
-      <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '16px' }}>
+      {/* ── Target Budget Progress & Guard Card ── */}
+      <div className="liquid-glass" style={{ padding: '24px', borderRadius: 'var(--r-lg)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <TrendingUp size={20} color={finances.isOverBudget ? "var(--color-danger)" : "var(--color-success)"} />
+              <TrendingUp size={20} color={finances.isOverBudget ? "var(--brand-rose)" : "var(--brand-emerald)"} />
               <h4 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Budget Health Target</h4>
             </div>
-            <span className={`badge-tag ${finances.isOverBudget ? 'warning' : 'success'}`}>
-              {finances.isOverBudget ? 'Over Budget Alert' : 'Within Budget'}
+            <span className={`badge-tag ${finances.isOverBudget ? 'rose' : 'success'}`}>
+              {finances.isOverBudget ? '⚠️ Over Budget Alert' : '✓ Within Target'}
             </span>
           </div>
 
           <div style={{ margin: '20px 0 12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '8px' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Estimated vs Target:</span>
+              <span style={{ color: 'var(--text-muted)' }}>Estimated Spend vs Target:</span>
               <span style={{ fontWeight: 700 }}>
                 {formatCurrency(finances.totalEstimated)} / {formatCurrency(finances.target)}
               </span>
             </div>
 
             {/* Progress bar */}
-            <div style={{ width: '100%', height: '12px', background: 'var(--bg-tertiary)', borderRadius: '999px', overflow: 'hidden', position: 'relative' }}>
+            <div style={{ width: '100%', height: '12px', background: 'rgba(255,255,255,0.06)', borderRadius: '999px', overflow: 'hidden', position: 'relative' }}>
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${Math.min(100, (finances.totalEstimated / finances.target) * 100)}%` }}
                 transition={{ duration: 0.8, ease: 'easeOut' }}
                 style={{
                   height: '100%',
-                  background: finances.isOverBudget ? 'var(--brand-gradient-sunset)' : 'var(--brand-gradient-emerald)',
+                  background: finances.isOverBudget ? 'var(--gradient-sunset)' : 'var(--gradient-brand)',
                   borderRadius: '999px'
                 }}
               />
@@ -132,38 +155,37 @@ export default function BudgetCharts({ trip }) {
           </div>
 
           {finances.isOverBudget ? (
-            <div style={{ padding: '12px', borderRadius: 'var(--radius-md)', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-              <AlertTriangle size={18} color="var(--color-danger)" style={{ flexShrink: 0, marginTop: '2px' }} />
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                <strong style={{ color: 'var(--color-danger)' }}>Exceeding target by {formatCurrency(Math.abs(finances.remaining))}.</strong> Consider swapping premium activities or choosing boutique rail options.
+            <div style={{ padding: '12px 14px', borderRadius: 'var(--r-md)', background: 'rgba(244, 63, 94, 0.12)', border: '1px solid rgba(244, 63, 94, 0.25)', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+              <AlertTriangle size={18} color="var(--brand-rose)" style={{ flexShrink: 0, marginTop: '2px' }} />
+              <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                <strong style={{ color: 'var(--brand-rose)' }}>Exceeding target by {formatCurrency(Math.abs(finances.remaining))}.</strong> Consider modifying vehicle rental dates or choosing a half-day tour guide tier.
               </div>
             </div>
           ) : (
-            <div style={{ padding: '12px', borderRadius: 'var(--radius-md)', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.25)', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-              <CheckCircle2 size={18} color="var(--color-success)" style={{ flexShrink: 0, marginTop: '2px' }} />
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                <strong style={{ color: 'var(--color-success)' }}>You have {formatCurrency(finances.remaining)} buffer remaining.</strong> Your budget is healthy and ready for spontaneous adventures!
+            <div style={{ padding: '12px 14px', borderRadius: 'var(--r-md)', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.25)', display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <CheckCircle2 size={18} color="var(--brand-emerald)" style={{ flexShrink: 0 }} />
+              <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                <strong>{formatCurrency(finances.remaining)}</strong> remaining buffer under your budget ceiling.
               </div>
             </div>
           )}
         </div>
 
-        {/* Quick financial metric footers */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', paddingTop: '14px', borderTop: '1px solid var(--border-subtle)' }}>
+        {/* Quick summary strip */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', borderTop: '1px solid var(--border-subtle)', paddingTop: '14px', fontSize: '0.8rem', textAlign: 'center' }}>
           <div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Avg. Daily Spend</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 700 }}>
-              {formatCurrency(Math.round(finances.totalEstimated / Math.max(1, trip.stops?.reduce((acc, s) => acc + (s.stayDays || 1), 0) || 1)))}/day
-            </div>
+            <div style={{ color: 'var(--text-muted)' }}>Stops Planned</div>
+            <div style={{ fontWeight: 800, fontSize: '1rem', marginTop: '2px' }}>{trip?.stops?.length || 0} Cities</div>
           </div>
           <div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Total Stops Planned</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 700 }}>
-              {trip.stops?.length || 0} Cities
-            </div>
+            <div style={{ color: 'var(--text-muted)' }}>Vehicles</div>
+            <div style={{ fontWeight: 800, fontSize: '1rem', marginTop: '2px' }}>{trip?.stops?.reduce((acc, s) => acc + (s.vehicleRentals?.length || 0), 0) || 0} Rented</div>
+          </div>
+          <div>
+            <div style={{ color: 'var(--text-muted)' }}>Tour Guides</div>
+            <div style={{ fontWeight: 800, fontSize: '1rem', marginTop: '2px' }}>{trip?.stops?.reduce((acc, s) => acc + (s.guideBookings?.length || 0), 0) || 0} Booked</div>
           </div>
         </div>
-
       </div>
 
     </div>

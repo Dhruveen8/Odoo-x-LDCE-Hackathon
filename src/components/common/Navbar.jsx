@@ -3,13 +3,16 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Compass, Plus, Sun, Moon, Search, ChevronDown,
   MapPin, DollarSign, LogOut, Sparkles, Layers,
-  Calendar, PieChart, ShieldAlert, Palmtree, Share2, X
+  Calendar, PieChart, ShieldAlert, Palmtree, Share2, X,
+  Car
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 const NAV_TABS = [
   { id: 'dashboard',        label: 'Home',         icon: Compass   },
   { id: 'my-trips',         label: 'Trips',         icon: Layers    },
+  { id: 'vehicles',         label: 'Vehicles',      icon: Car       },
+  { id: 'guides',           label: 'Guides',        icon: Compass   },
   { id: 'city-search',      label: 'Destinations',  icon: MapPin    },
   { id: 'activity-search',  label: 'Experiences',   icon: Sparkles  },
   { id: 'budget',           label: 'Budget',        icon: PieChart  },

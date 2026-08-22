@@ -23,11 +23,13 @@ export const INITIAL_TRIPS = [
     startDate: "2026-09-12",
     endDate: "2026-09-22",
     status: "Upcoming",
-    targetBudget: 3200,
+    targetBudget: 3800,
     transportBudget: 750,
     lodgingBudget: 1200,
     foodBudget: 650,
-    activitiesBudget: 600,
+    activitiesBudget: 400,
+    vehiclesBudget: 500,
+    guidesBudget: 300,
     isPublic: true,
     shareSlug: "grand-mediterranean-odyssey-2026",
     likesCount: 142,
@@ -45,6 +47,42 @@ export const INITIAL_TRIPS = [
         transitMode: "Flight / Metro",
         transitCost: 280,
         order: 1,
+        vehicleRentals: [
+          {
+            id: "v-rent-paris-1",
+            vehicleId: "veh-paris-1",
+            name: "Mercedes-Benz E-Class Cabriolet",
+            model: "2025 AMG Line",
+            type: "Convertible",
+            seats: 4,
+            transmission: "Automatic",
+            fuelType: "Petrol",
+            provider: "Sixt Luxury France",
+            rating: 4.92,
+            image: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=900&q=80",
+            startDate: "2026-09-12",
+            endDate: "2026-09-15",
+            rentalDays: 3,
+            dailyRate: 140,
+            totalCost: 420
+          }
+        ],
+        guideBookings: [
+          {
+            id: "g-book-paris-1",
+            guideId: "guide-paris-1",
+            name: "Éléonore Dupont",
+            avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80",
+            specialization: "Art & Museum VIP Access",
+            languages: ["English", "French"],
+            rating: 4.98,
+            date: "2026-09-13",
+            duration: "Full Day (8h)",
+            rate: 180,
+            totalCost: 180,
+            notes: "Private VIP tour of the Louvre and Musée d'Orsay"
+          }
+        ],
         activities: [
           {
             id: "act-1",
@@ -91,6 +129,42 @@ export const INITIAL_TRIPS = [
         transitMode: "High Speed Rail / Flight",
         transitCost: 190,
         order: 2,
+        vehicleRentals: [
+          {
+            id: "v-rent-rome-1",
+            vehicleId: "veh-rome-2",
+            name: "Fiat 500e Vintage Edition",
+            model: "2025 Dolce Vita",
+            type: "Electric",
+            seats: 4,
+            transmission: "Automatic",
+            fuelType: "Electric",
+            provider: "Locauto Rome",
+            rating: 4.89,
+            image: "https://images.unsplash.com/photo-1590362891991-f776e747a588?auto=format&fit=crop&w=900&q=80",
+            startDate: "2026-09-15",
+            endDate: "2026-09-18",
+            rentalDays: 3,
+            dailyRate: 65,
+            totalCost: 195
+          }
+        ],
+        guideBookings: [
+          {
+            id: "g-book-rome-1",
+            guideId: "guide-rome-1",
+            name: "Marco Bellini",
+            avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
+            specialization: "Historical & Architecture",
+            languages: ["English", "Italian"],
+            rating: 4.99,
+            date: "2026-09-16",
+            duration: "Half Day (4h)",
+            rate: 110,
+            totalCost: 110,
+            notes: "Exclusive underground Colosseum access"
+          }
+        ],
         activities: [
           {
             id: "act-4",
@@ -127,6 +201,23 @@ export const INITIAL_TRIPS = [
         transitMode: "Short Flight",
         transitCost: 140,
         order: 3,
+        vehicleRentals: [],
+        guideBookings: [
+          {
+            id: "g-book-bcn-1",
+            guideId: "guide-bcn-1",
+            name: "Jordi Pujol & Clara",
+            avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+            specialization: "Historical & Architecture",
+            languages: ["English", "Spanish"],
+            rating: 4.96,
+            date: "2026-09-19",
+            duration: "Half Day (4h)",
+            rate: 100,
+            totalCost: 100,
+            notes: "Sagrada Família & Gaudí secret rooftops"
+          }
+        ],
         activities: [
           {
             id: "act-6",
@@ -170,11 +261,13 @@ export const INITIAL_TRIPS = [
     startDate: "2026-11-04",
     endDate: "2026-11-12",
     status: "Upcoming",
-    targetBudget: 2800,
+    targetBudget: 3200,
     transportBudget: 600,
     lodgingBudget: 950,
     foodBudget: 600,
-    activitiesBudget: 500,
+    activitiesBudget: 400,
+    vehiclesBudget: 350,
+    guidesBudget: 300,
     isPublic: true,
     shareSlug: "japan-neon-zen-2026",
     likesCount: 89,
@@ -192,6 +285,23 @@ export const INITIAL_TRIPS = [
         transitMode: "Flight + Narita Express",
         transitCost: 350,
         order: 1,
+        vehicleRentals: [],
+        guideBookings: [
+          {
+            id: "g-book-tokyo-1",
+            guideId: "guide-tokyo-1",
+            name: "Kenji Takahashi",
+            avatar: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=400&q=80",
+            specialization: "Nightlife & Cultural Stories",
+            languages: ["English", "Japanese"],
+            rating: 4.97,
+            date: "2026-11-05",
+            duration: "Sunset Special (3h)",
+            rate: 90,
+            totalCost: 90,
+            notes: "Golden Gai hidden izakayas and Shibuya speakeasy"
+          }
+        ],
         activities: [
           {
             id: "act-tok-1",
@@ -238,6 +348,8 @@ export const INITIAL_TRIPS = [
         transitMode: "Shinkansen Bullet Train",
         transitCost: 110,
         order: 2,
+        vehicleRentals: [],
+        guideBookings: [],
         activities: [
           {
             id: "act-kyo-1",
@@ -271,11 +383,13 @@ export const INITIAL_TRIPS = [
     startDate: "2026-06-15",
     endDate: "2026-06-22",
     status: "Completed",
-    targetBudget: 1400,
+    targetBudget: 1500,
     transportBudget: 350,
     lodgingBudget: 450,
     foodBudget: 300,
-    activitiesBudget: 250,
+    activitiesBudget: 200,
+    vehiclesBudget: 150,
+    guidesBudget: 100,
     isPublic: true,
     shareSlug: "bali-tropical-wellness-2026",
     likesCount: 215,
@@ -293,6 +407,42 @@ export const INITIAL_TRIPS = [
         transitMode: "Private Driver",
         transitCost: 80,
         order: 1,
+        vehicleRentals: [
+          {
+            id: "v-rent-bali-1",
+            vehicleId: "veh-bali-2",
+            name: "Suzuki Jimny 4x4",
+            model: "2024 Heritage Edition",
+            type: "SUV",
+            seats: 4,
+            transmission: "Automatic",
+            fuelType: "Petrol",
+            provider: "Ubud Safari Rentals",
+            rating: 4.92,
+            image: "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=900&q=80",
+            startDate: "2026-06-15",
+            endDate: "2026-06-22",
+            rentalDays: 7,
+            dailyRate: 42,
+            totalCost: 294
+          }
+        ],
+        guideBookings: [
+          {
+            id: "g-book-bali-1",
+            guideId: "guide-bali-1",
+            name: "Wayan Sudarta",
+            avatar: "https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&w=400&q=80",
+            specialization: "Adventure & Photography",
+            languages: ["English", "Indonesian"],
+            rating: 4.98,
+            date: "2026-06-17",
+            duration: "Full Day (8h)",
+            rate: 55,
+            totalCost: 55,
+            notes: "Secret waterfall trek and sacred water blessing"
+          }
+        ],
         activities: [
           {
             id: "act-bal-1",

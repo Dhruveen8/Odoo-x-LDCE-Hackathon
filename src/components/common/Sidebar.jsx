@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   LayoutDashboard, Luggage, Map, Compass, Sparkles,
   PieChart, Calendar, Share2, User, BarChart3,
-  PlusCircle, FolderGit2, Palmtree
+  PlusCircle, FolderGit2, Palmtree, Car, UserCheck
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
@@ -12,26 +12,28 @@ const NAV_GROUPS = [
     label: 'Overview',
     items: [
       { id: 'dashboard',         label: 'Dashboard',      icon: LayoutDashboard },
-      { id: 'my-trips',          label: 'My Trips',       icon: Luggage,   count: 3 },
+      { id: 'my-trips',          label: 'My Saved Trips', icon: Luggage,   count: 3 },
     ]
   },
   {
-    label: 'Trip Tools',
+    label: 'Trip Planning & Services',
     items: [
-      { id: 'itinerary-view',    label: 'Timeline',       icon: Map },
-      { id: 'itinerary-builder', label: 'Builder',        icon: FolderGit2 },
-      { id: 'budget',            label: 'Budget',         icon: PieChart },
-      { id: 'calendar',          label: 'Calendar',       icon: Calendar },
-      { id: 'public-trip',       label: 'Share Link',     icon: Share2 },
+      { id: 'itinerary-builder', label: 'Itinerary Builder', icon: FolderGit2 },
+      { id: 'itinerary-view',    label: 'Timeline & Route', icon: Map },
+      { id: 'vehicles',          label: 'Vehicle Rentals', icon: Car },
+      { id: 'guides',            label: 'Tour Guides',     icon: UserCheck },
+      { id: 'budget',            label: 'Budget Ledger',   icon: PieChart },
+      { id: 'calendar',          label: 'Trip Calendar',   icon: Calendar },
+      { id: 'public-trip',       label: 'Shareable Link',  icon: Share2 },
     ]
   },
   {
-    label: 'Discover',
+    label: 'Explore Catalog',
     items: [
       { id: 'city-search',       label: 'Explore Cities', icon: Compass },
       { id: 'activity-search',   label: 'Experiences',    icon: Sparkles },
-      { id: 'profile',           label: 'Profile',        icon: User },
-      { id: 'admin',             label: 'Analytics',      icon: BarChart3 },
+      { id: 'profile',           label: 'Profile & Style', icon: User },
+      { id: 'admin',             label: 'Analytics Hub',  icon: BarChart3 },
     ]
   }
 ];

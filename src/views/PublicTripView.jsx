@@ -12,7 +12,9 @@ import {
   DollarSign, 
   Sparkles,
   Users,
-  MessageSquare
+  MessageSquare,
+  Car,
+  Compass
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useApp } from '../context/AppContext';
@@ -67,8 +69,8 @@ export default function PublicTripView() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
       
-      {/* Public Share Controls Bar */}
-      <div className="glass-panel" style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+      {/* ── Public Share Controls Bar ── */}
+      <div className="liquid-glass" style={{ padding: '20px 24px', borderRadius: 'var(--r-xl)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="badge-tag success">
@@ -88,7 +90,7 @@ export default function PublicTripView() {
             className="btn btn-secondary"
             style={{ gap: '8px' }}
           >
-            {copied ? <Check size={16} color="var(--color-success)" /> : <Copy size={16} />}
+            {copied ? <Check size={16} color="var(--brand-emerald)" /> : <Copy size={16} />}
             <span>{copied ? 'Copied URL!' : 'Copy Share Link'}</span>
           </button>
 
@@ -106,7 +108,6 @@ export default function PublicTripView() {
             whileTap={{ scale: 0.96 }}
             onClick={handleCopyTrip}
             className="btn btn-primary"
-            style={{ background: 'var(--brand-gradient-sunset)' }}
           >
             <Sparkles size={16} />
             <span>Copy to My Trips</span>
@@ -114,11 +115,11 @@ export default function PublicTripView() {
         </div>
       </div>
 
-      {/* Main Cover & Overview */}
-      <div className="glass-panel" style={{ padding: 0, overflow: 'hidden' }}>
+      {/* ── Main Cover & Overview ── */}
+      <div className="liquid-glass" style={{ padding: 0, overflow: 'hidden', borderRadius: 'var(--r-xl)' }}>
         <div style={{ height: '300px', position: 'relative' }}>
           <img src={activeTrip.coverImage} alt={activeTrip.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(15,23,42,0.95) 0%, rgba(15,23,42,0.3) 60%, transparent 100%)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(14,13,26,0.95) 0%, rgba(14,13,26,0.3) 60%, transparent 100%)' }} />
 
           <div style={{ position: 'absolute', bottom: '28px', left: '28px', right: '28px', color: '#ffffff' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
@@ -137,7 +138,7 @@ export default function PublicTripView() {
         </div>
 
         {/* Social Meta Bar */}
-        <div style={{ padding: '16px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', background: 'var(--bg-secondary)', borderTop: '1px solid var(--border-subtle)' }}>
+        <div style={{ padding: '16px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', background: 'rgba(255,255,255,0.02)', borderTop: '1px solid var(--border-subtle)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             <button
               onClick={handleLike}
@@ -167,7 +168,7 @@ export default function PublicTripView() {
                 window.open(`https://api.whatsapp.com/send?text=Check out this trip: ${encodeURIComponent(shareableUrl)}`, '_blank');
               }}
               className="btn btn-sm btn-ghost"
-              style={{ fontSize: '0.8rem', color: 'var(--color-success)' }}
+              style={{ fontSize: '0.8rem', color: 'var(--brand-emerald)' }}
             >
               WhatsApp
             </button>
@@ -175,22 +176,22 @@ export default function PublicTripView() {
         </div>
       </div>
 
-      {/* Multi-City Journey Route Map */}
+      {/* ── Multi-City Journey Route Map ── */}
       <RouteMapCanvas stops={activeTrip.stops || []} tripTitle={activeTrip.title} />
 
-      {/* Stop by Stop Overview */}
+      {/* ── Stop by Stop Overview with Activities, Vehicles & Guides ── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <h3 style={{ fontSize: '1.4rem', fontWeight: 800 }}>Complete Journey Schedule</h3>
         
         {activeTrip.stops?.map((stop, sIdx) => (
           <div
             key={stop.id}
-            className="glass-panel"
-            style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}
+            className="liquid-glass"
+            style={{ padding: '24px', borderRadius: 'var(--r-xl)', display: 'flex', flexDirection: 'column', gap: '16px' }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '14px', flexWrap: 'wrap', gap: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--brand-gradient)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
+                <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--gradient-brand)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
                   {sIdx + 1}
                 </span>
                 <div>
@@ -199,17 +200,22 @@ export default function PublicTripView() {
                 </div>
               </div>
 
-              <span className="badge-tag success">Transit: {stop.transitMode}</span>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <span className="badge-tag success">Transit: {stop.transitMode}</span>
+                {stop.vehicleRentals?.length > 0 && <span className="badge-tag primary">🚗 {stop.vehicleRentals[0].name}</span>}
+                {stop.guideBookings?.length > 0 && <span className="badge-tag" style={{ background: 'rgba(16,185,129,0.15)', color: '#6ee7b7' }}>🧭 Guide: {stop.guideBookings[0].name}</span>}
+              </div>
             </div>
 
+            {/* Activities list */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '12px' }}>
               {stop.activities?.map(act => (
                 <div
                   key={act.id}
                   style={{
                     padding: '12px 14px',
-                    borderRadius: 'var(--radius-md)',
-                    background: 'var(--bg-secondary)',
+                    borderRadius: 'var(--r-md)',
+                    background: 'rgba(255,255,255,0.03)',
                     border: '1px solid var(--border-subtle)'
                   }}
                 >
@@ -223,12 +229,11 @@ export default function PublicTripView() {
         ))}
       </div>
 
-      {/* QR Code Modal */}
-      <Modal isOpen={showQrModal} onClose={() => setShowQrModal(false)} title="Scan & Open on Mobile" maxWidth="400px">
+      {/* ── QR Code Modal ── */}
+      <Modal isOpen={showQrModal} onClose={() => setShowQrModal(false)} title="Scan &amp; Open on Mobile" maxWidth="400px">
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '16px' }}>
           <div style={{ width: '200px', height: '200px', background: '#ffffff', padding: '16px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-md)' }}>
             <svg viewBox="0 0 100 100" width="100%" height="100%">
-              {/* Simulated QR Code SVG pattern */}
               <rect x="0" y="0" width="30" height="30" fill="#000000" />
               <rect x="5" y="5" width="20" height="20" fill="#ffffff" />
               <rect x="10" y="10" width="10" height="10" fill="#000000" />
