@@ -1,45 +1,40 @@
 /**
- * LandingPage.jsx — Self-contained. No global styles modified.
- *
- * Section 10 text fix implemented:
- *   Layer 1 (z:2)  — Full word text as ONE element: "WORLD", "JAPAN", etc.
- *   Layer 2 (z:8)  — 3D globe canvas sits ON TOP, occludes center letters
- *   Layer 3 (z:15) — CTA button, always clickable above globe
- *   Layer 4 (z:20) — Navbar, dots, highlight list — always in front
+ * LandingPage.jsx — Self-contained Three.js 3D Globe with animated "Explore World With Us"
  */
 
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import * as THREE from 'three';
 import { useApp } from '../context/AppContext';
+import { Sparkles, ArrowRight, Compass, Globe } from 'lucide-react';
 
 // ─── Slide data ───────────────────────────────────────────────────────────────
 const SLIDES = [
   {
     id: 'world',
     label: 'WORLD',
-    pre: 'Explore Your',
-    highlights: [],
-    color: '#1e6aff',
+    pre: 'Curated Expeditions',
+    highlights: ['Swiss Alps', 'Santorini', 'Kyoto', 'Amalfi Coast', 'Bali'],
+    color: '#38bdf8',
   },
   {
     id: 'japan',
     label: 'JAPAN',
-    pre: 'Discover',
+    pre: 'Ancient & Futuristic',
     highlights: ['Mount Fuji', 'Kyoto Temples', 'Shibuya Crossing', 'Arashiyama', 'Osaka Castle'],
     color: '#e8365d',
   },
   {
     id: 'italy',
     label: 'ITALY',
-    pre: 'Journey Through',
+    pre: 'Renaissance & Coastlines',
     highlights: ['Colosseum', 'Venice Canals', 'Amalfi Coast', 'Tuscany Hills', 'Vatican City'],
     color: '#ff8c1a',
   },
   {
     id: 'india',
     label: 'INDIA',
-    pre: 'Experience',
+    pre: 'Royal Palaces & Ghats',
     highlights: ['Taj Mahal', 'Varanasi Ghats', 'Kerala Backwaters', 'Rajasthan Forts', 'Hampi Ruins'],
     color: '#ff6b35',
   },
@@ -53,16 +48,16 @@ const noMotion = () =>
 export default function LandingPage() {
   const { setCurrentView } = useApp();
 
-  const mountRef    = useRef(null);
-  const frameRef    = useRef(null);
-  const glowRef     = useRef(null);
+  const mountRef = useRef(null);
+  const frameRef = useRef(null);
+  const glowRef = useRef(null);
 
   const [slideIdx, setSlideIdx] = useState(0);
-  const [hlCount,  setHlCount]  = useState(0);
-  const [loaded,   setLoaded]   = useState(false);
+  const [hlCount, setHlCount] = useState(0);
+  const [loaded, setLoaded] = useState(false);
 
   const reduced = noMotion();
-  const slide   = SLIDES[slideIdx];
+  const slide = SLIDES[slideIdx];
 
   // ── Auto-cycle slides every 6.5 s ─────────────────────────────────────────
   useEffect(() => {
@@ -82,7 +77,7 @@ export default function LandingPage() {
       setTimeout(() => setHlCount(n => Math.max(n, i + 1)), 600 + i * 280)
     );
     return () => timers.forEach(clearTimeout);
-  }, [slideIdx]); // eslint-disable-line
+  }, [slideIdx]);
 
   // ── Three.js WebGL globe ───────────────────────────────────────────────────
   useEffect(() => {
@@ -94,13 +89,13 @@ export default function LandingPage() {
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(W, H);
-    renderer.toneMapping         = THREE.ACESFilmicToneMapping;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.25;
     el.appendChild(renderer.domElement);
 
-    const scene  = new THREE.Scene();
+    const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 100);
-    camera.position.z = 2.75;
+    camera.position.z = 2.85;
 
     // Stars
     const N = 2400, sp = new Float32Array(N * 3);
@@ -121,13 +116,13 @@ export default function LandingPage() {
     scene.add(rim);
 
     // Textures
-    const ldr  = new THREE.TextureLoader();
+    const ldr = new THREE.TextureLoader();
     const BASE = 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/';
-    const eT   = ldr.load(BASE + 'earth_atmos_2048.jpg', () => setLoaded(true));
-    const nT   = ldr.load(BASE + 'earth_normal_2048.jpg');
-    const sT   = ldr.load(BASE + 'earth_specular_2048.jpg');
-    const cT   = ldr.load(BASE + 'earth_clouds_1024.png');
-    const fb   = setTimeout(() => setLoaded(true), 2500);
+    const eT = ldr.load(BASE + 'earth_atmos_2048.jpg', () => setLoaded(true));
+    const nT = ldr.load(BASE + 'earth_normal_2048.jpg');
+    const sT = ldr.load(BASE + 'earth_specular_2048.jpg');
+    const cT = ldr.load(BASE + 'earth_clouds_1024.png');
+    const fb = setTimeout(() => setLoaded(true), 2500);
 
     // Globe mesh
     const globe = new THREE.Mesh(
@@ -169,7 +164,7 @@ export default function LandingPage() {
       frameRef.current = requestAnimationFrame(tick);
       t += 0.005;
       if (!reduced) {
-        globe.rotation.y  += 0.0015;
+        globe.rotation.y += 0.0015;
         clouds.rotation.y += 0.002;
       }
       glow.material.opacity = 0.055 + Math.sin(t * 1.4) * 0.032;
@@ -193,169 +188,209 @@ export default function LandingPage() {
       renderer.dispose();
       if (el.contains(renderer.domElement)) el.removeChild(renderer.domElement);
     };
-  }, []); // eslint-disable-line
+  }, []);
 
-  // ─────────────────────────────────────────────────────────────────────────
   return (
     <div style={css.root}>
 
-      {/* Nebula ambient blobs — behind everything */}
+      {/* ── Nebula Ambient Glows ── */}
       <div aria-hidden style={css.nebula}>
-        <div style={{ ...css.blob, top:'8%',   left:'46%', width:620, height:620,
+        <div style={{ ...css.blob, top:'8%', left:'46%', width:620, height:620,
           background:'radial-gradient(circle,rgba(24,90,255,.22)0%,transparent 68%)', filter:'blur(72px)' }} />
-        <div style={{ ...css.blob, top:'40%',  left:'28%', width:480, height:480,
+        <div style={{ ...css.blob, top:'40%', left:'28%', width:480, height:480,
           background:'radial-gradient(circle,rgba(60,170,255,.11)0%,transparent 68%)', filter:'blur(90px)' }} />
-        <div style={{ ...css.blob, bottom:'4%', right:'8%',  width:340, height:340,
+        <div style={{ ...css.blob, bottom:'4%', right:'8%', width:340, height:340,
           background:`radial-gradient(circle,${slide.color}22 0%,transparent 70%)`,
           filter:'blur(60px)', transition:'background 1.2s ease' }} />
       </div>
 
-      {/* ── LAYER 1 (z:2) — Full unbroken word text, behind globe ── */}
-      <div style={css.textLayer} aria-live="polite">
-        <AnimatePresence mode="wait">
-          <motion.p
-            key={`pre-${slideIdx}`}
-            initial={{ opacity:0, y:8 }}
-            animate={{ opacity:1, y:0 }}
-            exit={{ opacity:0, y:-8 }}
-            transition={{ duration:.4, ease:[.22,1,.36,1] }}
-            style={css.subtitle}
-          >
-            {slide.pre}
-          </motion.p>
-        </AnimatePresence>
-
-        {/* ★ ONE complete word — never split ★ */}
-        <AnimatePresence mode="wait">
-          <motion.h1
-            key={`word-${slideIdx}`}
-            initial={{ opacity:0, filter:'blur(10px)' }}
-            animate={{ opacity: loaded ? 1 : 0, filter:'blur(0px)' }}
-            exit={{ opacity:0, filter:'blur(10px)' }}
-            transition={{ duration:.7, ease:[.22,1,.36,1] }}
-            style={{
-              ...css.headline,
-              textShadow:`0 0 120px ${slide.color}44, 0 3px 0 rgba(0,0,0,.5)`,
-            }}
-          >
-            {slide.label}
-          </motion.h1>
-        </AnimatePresence>
-      </div>
-
-      {/* ── LAYER 2 (z:8) — Three.js globe canvas ON TOP of text ── */}
+      {/* ── 3D Globe Canvas (z:5) ── */}
       <div ref={mountRef} style={css.globeLayer} />
 
-      {/* ── LAYER 3 (z:15) — CTA button, above globe, always clickable ── */}
+      {/* ── Prominent Animated "Explore World With Us" Hero Typography (z:12) ── */}
+      <div style={css.heroContainer}>
+        <motion.div
+          initial={{ opacity: 0, y: -24 }}
+          animate={{ opacity: loaded ? 1 : 0, y: loaded ? 0 : -24 }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', pointerEvents: 'none' }}
+        >
+          {/* Animated Eyebrow Badge */}
+          <motion.div
+            key={`badge-${slideIdx}`}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '6px 18px',
+              borderRadius: '999px',
+              background: 'rgba(255, 255, 255, 0.08)',
+              backdropFilter: 'blur(16px)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              marginBottom: '16px',
+              boxShadow: `0 0 20px ${slide.color}33`,
+            }}
+          >
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: slide.color, boxShadow: `0 0 8px ${slide.color}` }} />
+            <span style={{ fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#fff' }}>
+              {slide.pre} • {slide.label}
+            </span>
+          </motion.div>
+
+          {/* ★ BIG ANIMATED HEADLINE: "EXPLORE WORLD WITH US" ★ */}
+          <motion.h1
+            animate={{
+              y: [0, -8, 0],
+              textShadow: [
+                `0 0 50px rgba(0, 180, 255, 0.4), 0 0 90px ${slide.color}40`,
+                `0 0 70px rgba(0, 180, 255, 0.7), 0 0 120px ${slide.color}60`,
+                `0 0 50px rgba(0, 180, 255, 0.4), 0 0 90px ${slide.color}40`
+              ]
+            }}
+            transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
+            style={{
+              fontFamily: "'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif",
+              fontSize: 'clamp(48px, 7.5vw, 108px)',
+              fontWeight: 900,
+              letterSpacing: '-0.02em',
+              lineHeight: 1.05,
+              color: '#ffffff',
+              margin: '0 auto',
+              textTransform: 'uppercase',
+              userSelect: 'none',
+              filter: 'drop-shadow(0 12px 36px rgba(0,0,0,0.85))',
+              textAlign: 'center'
+            }}
+          >
+            Explore World <br />
+            <span style={{
+              background: `linear-gradient(135deg, #ffffff 0%, ${slide.color} 50%, #38bdf8 100%)`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              display: 'inline-block'
+            }}>
+              With Us
+            </span>
+          </motion.h1>
+        </motion.div>
+      </div>
+
+      {/* ── CTA Layer (z:18) ── */}
       <div style={css.ctaLayer}>
         <motion.button
-          initial={{ opacity:0, y:22 }}
-          animate={{ opacity: loaded?1:0, y: loaded?0:22 }}
-          transition={{ duration:.65, delay:.6, ease:[.22,1,.36,1] }}
-          whileHover={{ scale:1.06 }} whileTap={{ scale:0.97 }}
+          initial={{ opacity: 0, y: 22 }}
+          animate={{ opacity: loaded ? 1 : 0, y: loaded ? 0 : 22 }}
+          transition={{ duration: 0.65, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          whileHover={{ scale: 1.06, boxShadow: `0 12px 40px ${slide.color}77` }}
+          whileTap={{ scale: 0.97 }}
           onClick={() => setCurrentView('auth')}
           style={{
             ...css.ctaBtn,
-            background:`linear-gradient(135deg,${slide.color} 0%,#00bbff 100%)`,
-            boxShadow:`0 8px 36px ${slide.color}55`,
-            transition:'background .7s ease, box-shadow .6s ease',
+            background: `linear-gradient(135deg, ${slide.color} 0%, #00bbff 100%)`,
+            boxShadow: `0 8px 36px ${slide.color}55`,
+            transition: 'background .7s ease, box-shadow .6s ease',
           }}
         >
-          Plan Your Trip →
+          <span>PLAN YOUR ESCAPE</span>
+          <ArrowRight size={16} />
         </motion.button>
       </div>
 
-      {/* ── LAYER 4 (z:20) — Navbar ── */}
+      {/* ── Top Navbar (z:25) ── */}
       <motion.nav
-        initial={{ opacity:0, y:-16 }}
-        animate={{ opacity:1, y:0 }}
-        transition={{ duration:.7, delay:.15, ease:[.22,1,.36,1] }}
+        initial={{ opacity: 0, y: -16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
         style={css.nav}
       >
         <div style={css.logo}>
           <div style={{
             ...css.logoBadge,
-            boxShadow:`0 0 22px ${slide.color}88`,
-            transition:'box-shadow .6s',
-          }}>G</div>
+            boxShadow: `0 0 22px ${slide.color}88`,
+            transition: 'box-shadow .6s',
+          }}>
+            <Compass size={20} color="#fff" />
+          </div>
           <span style={css.logoText}>GLOBETROTTER</span>
         </div>
 
         <div style={css.navRight}>
-          {['Explore', 'Destinations', 'Plan'].map(lbl => (
-            <button key={lbl} style={css.navLink}
+          {['Explore', 'Destinations', 'Fleet', 'Guides'].map(lbl => (
+            <button
+              key={lbl}
+              style={css.navLink}
+              onClick={() => setCurrentView('auth')}
               onMouseEnter={e => e.currentTarget.style.color = '#fff'}
               onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,.6)'}
-            >{lbl}</button>
+            >
+              {lbl}
+            </button>
           ))}
 
           <div style={css.divider} />
 
-          <button style={css.iconBtn} aria-label="Search">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-            </svg>
-          </button>
-
-          <button style={css.navLink}
+          <button
+            style={css.navLink}
             onClick={() => setCurrentView('auth')}
             onMouseEnter={e => e.currentTarget.style.color = '#fff'}
             onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,.6)'}
-          >Login</button>
+          >
+            Login
+          </button>
 
           <motion.button
-            whileHover={{ scale:1.05 }} whileTap={{ scale:0.97 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => setCurrentView('auth')}
             style={{
               ...css.signupBtn,
-              background:`linear-gradient(135deg,${slide.color} 0%,#00aaff 100%)`,
-              boxShadow:`0 4px 18px ${slide.color}55`,
-              transition:'background .6s,box-shadow .6s',
+              background: `linear-gradient(135deg, ${slide.color} 0%, #00aaff 100%)`,
+              boxShadow: `0 4px 18px ${slide.color}55`,
+              transition: 'background .6s, box-shadow .6s',
             }}
-          >Sign Up</motion.button>
-
-          <button style={css.iconBtn} aria-label="Language">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>
-            </svg>
-          </button>
+          >
+            Sign Up
+          </motion.button>
         </div>
       </motion.nav>
 
-      {/* ── LAYER 4 (z:20) — Left dot navigation ── */}
+      {/* ── Left Indicator Dots (z:20) ── */}
       <div style={css.dots}>
         {SLIDES.map((s, i) => (
           <motion.button
             key={s.id}
             onClick={() => { setSlideIdx(i); setHlCount(0); }}
             title={s.label}
-            animate={{ scale: i===slideIdx?1:.65, opacity: i===slideIdx?1:.38 }}
-            transition={{ duration:.35, ease:[.22,1,.36,1] }}
+            animate={{ scale: i === slideIdx ? 1 : 0.65, opacity: i === slideIdx ? 1 : 0.38 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             style={{
-              width:  i===slideIdx ? 11 : 7,
-              height: i===slideIdx ? 11 : 7,
-              borderRadius:'50%',
-              background: i===slideIdx
-                ? `linear-gradient(135deg,${slide.color},#00d4ff)`
+              width: i === slideIdx ? 11 : 7,
+              height: i === slideIdx ? 11 : 7,
+              borderRadius: '50%',
+              background: i === slideIdx
+                ? `linear-gradient(135deg, ${slide.color}, #00d4ff)`
                 : 'rgba(255,255,255,.45)',
-              border:'none', cursor:'pointer', padding:0,
-              boxShadow: i===slideIdx ? `0 0 12px ${slide.color}99` : 'none',
-              transition:'width .3s,height .3s,background .5s',
+              border: 'none', cursor: 'pointer', padding: 0,
+              boxShadow: i === slideIdx ? `0 0 12px ${slide.color}99` : 'none',
+              transition: 'width .3s, height .3s, background .5s',
             }}
           />
         ))}
       </div>
 
-      {/* ── LAYER 4 (z:20) — Right destination highlights ── */}
+      {/* ── Right Destination Highlights (z:20) ── */}
       <AnimatePresence mode="wait">
         {slide.highlights.length > 0 && (
           <motion.aside
             key={`hl-${slideIdx}`}
-            initial={{ opacity:0, x:28 }}
-            animate={{ opacity:1, x:0 }}
-            exit={{ opacity:0, x:28 }}
-            transition={{ duration:.5, ease:[.22,1,.36,1] }}
+            initial={{ opacity: 0, x: 28 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 28 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             style={css.hlPanel}
             aria-label="Destination highlights"
           >
@@ -363,23 +398,23 @@ export default function LandingPage() {
             {slide.highlights.map((name, i) => (
               <motion.div
                 key={name}
-                initial={{ opacity:0, x:16 }}
-                animate={{ opacity: i<hlCount?1:0, x: i<hlCount?0:16 }}
-                transition={{ duration:.38, ease:[.22,1,.36,1] }}
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: i < hlCount ? 1 : 0, x: i < hlCount ? 0 : 16 }}
+                transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
                 style={css.hlRow}
               >
-                <div style={{ textAlign:'right' }}>
+                <div style={{ textAlign: 'right' }}>
                   <div style={{
                     ...css.hlName,
-                    color: i===0 ? '#fff' : 'rgba(255,255,255,.7)',
-                    textShadow: i===0 ? `0 0 18px ${slide.color}` : 'none',
+                    color: i === 0 ? '#fff' : 'rgba(255,255,255,.7)',
+                    textShadow: i === 0 ? `0 0 18px ${slide.color}` : 'none',
                   }}>{name}</div>
                 </div>
                 <div style={{
-                  width:7, height:7, borderRadius:'50%', flexShrink:0,
-                  background: i===0 ? slide.color : 'rgba(255,255,255,.28)',
-                  boxShadow: i===0 ? `0 0 10px ${slide.color}` : 'none',
-                  transition:'background .4s,box-shadow .4s',
+                  width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
+                  background: i === 0 ? slide.color : 'rgba(255,255,255,.28)',
+                  boxShadow: i === 0 ? `0 0 10px ${slide.color}` : 'none',
+                  transition: 'background .4s, box-shadow .4s',
                 }} />
               </motion.div>
             ))}
@@ -387,7 +422,7 @@ export default function LandingPage() {
         )}
       </AnimatePresence>
 
-      {/* ── LAYER 4 (z:20) — Bottom progress bars ── */}
+      {/* ── Bottom Progress Bars (z:20) ── */}
       <div style={css.progress}>
         {SLIDES.map((s, i) => (
           <button
@@ -395,47 +430,47 @@ export default function LandingPage() {
             onClick={() => { setSlideIdx(i); setHlCount(0); }}
             aria-label={`Go to ${s.label}`}
             style={{
-              width: i===slideIdx ? 36 : 8, height:3, borderRadius:3,
-              border:'none', cursor:'pointer', padding:0,
-              background: i===slideIdx
-                ? `linear-gradient(90deg,${slide.color},#00d4ff)`
+              width: i === slideIdx ? 36 : 8, height: 3, borderRadius: 3,
+              border: 'none', cursor: 'pointer', padding: 0,
+              background: i === slideIdx
+                ? `linear-gradient(90deg, ${slide.color}, #00d4ff)`
                 : 'rgba(255,255,255,.2)',
-              transition:'width .4s ease,background .5s ease',
-              overflow:'hidden', position:'relative',
+              transition: 'width .4s ease, background .5s ease',
+              overflow: 'hidden', position: 'relative',
             }}
           >
-            {i===slideIdx && !reduced && (
+            {i === slideIdx && !reduced && (
               <motion.div
                 key={`pg-${slideIdx}`}
-                initial={{ x:'-100%' }} animate={{ x:'0%' }}
-                transition={{ duration:6.5, ease:'linear' }}
-                style={{ position:'absolute', inset:0, background:'rgba(255,255,255,.42)' }}
+                initial={{ x: '-100%' }} animate={{ x: '0%' }}
+                transition={{ duration: 6.5, ease: 'linear' }}
+                style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,.42)' }}
               />
             )}
           </button>
         ))}
       </div>
 
-      {/* Tagline */}
+      {/* Tagline Bottom Left */}
       <motion.div
-        initial={{ opacity:0 }}
-        animate={{ opacity: loaded ? .42 : 0 }}
-        transition={{ delay:1.4, duration:.9 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: loaded ? 0.6 : 0 }}
+        transition={{ delay: 1.4, duration: 0.9 }}
         style={css.tagline}
       >
-        Smart Travel Planning · Built for Explorers
+        GLOBETROTTER · INTELLIGENT TRAVEL PLANNING
       </motion.div>
 
-      {/* Loading overlay */}
+      {/* Loading Overlay */}
       <AnimatePresence>
         {!loaded && (
-          <motion.div exit={{ opacity:0 }} transition={{ duration:.9 }} style={css.overlay}>
+          <motion.div exit={{ opacity: 0 }} transition={{ duration: 0.9 }} style={css.overlay}>
             <motion.div
-              animate={{ rotate:360 }}
-              transition={{ duration:2.2, repeat:Infinity, ease:'linear' }}
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2.2, repeat: Infinity, ease: 'linear' }}
               style={css.spinner}
             />
-            <div style={css.loadingText}>Loading Earth…</div>
+            <div style={css.loadingText}>INITIALIZING EXPEDITIONS…</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -443,138 +478,137 @@ export default function LandingPage() {
   );
 }
 
-// ─── Scoped styles ─────────────────────────────────────────────────────────────
+// ─── Scoped Styles ─────────────────────────────────────────────────────────────
 const css = {
   root: {
-    position:'fixed', inset:0,
-    background:'radial-gradient(ellipse 130% 110% at 58% 48%,#0d2e6e 0%,#071430 40%,#030b1c 100%)',
-    fontFamily:"'Outfit','Plus Jakarta Sans',sans-serif",
-    overflow:'hidden', zIndex:999,
+    position: 'fixed', inset: 0,
+    background: 'radial-gradient(ellipse 130% 110% at 50% 50%, #0d2e6e 0%, #071430 40%, #030b1c 100%)',
+    fontFamily: "'Inter', -apple-system, sans-serif",
+    overflow: 'hidden', zIndex: 999,
   },
-  nebula: { position:'absolute', inset:0, pointerEvents:'none' },
-  blob:   { position:'absolute', borderRadius:'50%' },
+  nebula: { position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 1 },
+  blob: { position: 'absolute', borderRadius: '50%' },
 
-  // ── Layer 1 — text (BEHIND globe) ──
-  textLayer: {
-    position:'absolute', inset:0,
-    zIndex: 2,                          // below globe canvas (z:8)
-    display:'flex', flexDirection:'column',
-    alignItems:'center', justifyContent:'center',
-    pointerEvents:'none',
-  },
-  subtitle: {
-    color:'rgba(255,255,255,.52)',
-    fontSize:'clamp(.68rem,1.1vw,.88rem)',
-    fontWeight:500, letterSpacing:'0.26em',
-    textTransform:'uppercase', margin:'0 0 14px 0',
-  },
-  headline: {
-    margin:0,
-    fontSize:'clamp(64px,11vw,140px)',
-    fontWeight:900, color:'#ffffff',
-    lineHeight:1, userSelect:'none',
-    letterSpacing:'-0.01em',
-  },
-
-  // ── Layer 2 — globe canvas (ON TOP of text) ──
+  // 3D Globe Layer
   globeLayer: {
-    position:'absolute', inset:0,
-    zIndex: 8,                          // above text (z:2), below CTA/nav
-    pointerEvents:'none',
+    position: 'absolute', inset: 0,
+    zIndex: 5,
+    pointerEvents: 'none',
   },
 
-  // ── Layer 3 — CTA button (above globe) ──
+  // Hero Text Container — Perfectly Centered in Viewport
+  heroContainer: {
+    position: 'absolute',
+    inset: 0,
+    zIndex: 12,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    pointerEvents: 'none',
+    padding: '0 24px',
+    marginTop: '-20px',
+  },
+
+  // CTA Layer
   ctaLayer: {
-    position:'absolute', bottom:'16%', left:0, right:0,
-    zIndex: 15,
-    display:'flex', justifyContent:'center',
-    pointerEvents:'none',
+    position: 'absolute',
+    bottom: '10%',
+    left: 0,
+    right: 0,
+    zIndex: 18,
+    display: 'flex',
+    justifyContent: 'center',
+    pointerEvents: 'none',
   },
   ctaBtn: {
-    pointerEvents:'auto',
-    border:'none', cursor:'pointer', color:'#fff',
-    fontSize:'.85rem', fontWeight:700, letterSpacing:'0.18em',
-    padding:'16px 50px', borderRadius:50, textTransform:'uppercase',
+    pointerEvents: 'auto',
+    border: 'none',
+    cursor: 'pointer',
+    color: '#fff',
+    fontSize: '0.88rem',
+    fontWeight: 800,
+    letterSpacing: '0.14em',
+    padding: '16px 44px',
+    borderRadius: 50,
+    textTransform: 'uppercase',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '10px',
   },
 
-  // ── Layer 4 — Navbar (always on top) ──
+  // Navbar
   nav: {
-    position:'absolute', top:0, left:0, right:0, zIndex:20,
-    display:'flex', alignItems:'center', justifyContent:'space-between',
-    padding:'18px 42px',
-    background:'linear-gradient(to bottom,rgba(3,11,28,.68)0%,transparent 100%)',
+    position: 'absolute', top: 0, left: 0, right: 0, zIndex: 25,
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '18px 42px',
+    background: 'linear-gradient(to bottom, rgba(3,11,28,.7) 0%, transparent 100%)',
   },
-  logo:      { display:'flex', alignItems:'center', gap:10 },
+  logo: { display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' },
   logoBadge: {
-    width:38, height:38, borderRadius:'50%',
-    background:'linear-gradient(135deg,#1e6aff 0%,#00ccff 100%)',
-    display:'flex', alignItems:'center', justifyContent:'center',
-    fontWeight:900, fontSize:17, color:'#fff', flexShrink:0,
+    width: 36, height: 36, borderRadius: '10px',
+    background: 'linear-gradient(135deg, #1e6aff 0%, #00ccff 100%)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    flexShrink: 0,
   },
-  logoText:  { color:'#fff', fontWeight:800, fontSize:'1rem', letterSpacing:'0.12em' },
-  navRight:  { display:'flex', alignItems:'center', gap:26 },
-  navLink:   {
-    background:'none', border:'none', cursor:'pointer',
-    color:'rgba(255,255,255,.6)', fontSize:'0.74rem',
-    fontWeight:600, letterSpacing:'0.08em', transition:'color .2s',
+  logoText: { color: '#fff', fontWeight: 900, fontSize: '0.95rem', letterSpacing: '0.12em' },
+  navRight: { display: 'flex', alignItems: 'center', gap: 24 },
+  navLink: {
+    background: 'none', border: 'none', cursor: 'pointer',
+    color: 'rgba(255,255,255,.65)', fontSize: '0.8rem',
+    fontWeight: 600, letterSpacing: '0.06em', transition: 'color .2s',
   },
-  divider:   { width:1, height:18, background:'rgba(255,255,255,.16)' },
-  iconBtn:   {
-    background:'none', border:'1px solid rgba(255,255,255,.18)',
-    borderRadius:'50%', width:34, height:34,
-    display:'flex', alignItems:'center', justifyContent:'center',
-    cursor:'pointer', color:'rgba(255,255,255,.65)',
-  },
+  divider: { width: 1, height: 18, background: 'rgba(255,255,255,.16)' },
   signupBtn: {
-    border:'none', cursor:'pointer', color:'#fff',
-    fontSize:'0.72rem', fontWeight:700, letterSpacing:'0.12em',
-    padding:'9px 22px', borderRadius:24, textTransform:'uppercase',
+    border: 'none', cursor: 'pointer', color: '#fff',
+    fontSize: '0.78rem', fontWeight: 800, letterSpacing: '0.1em',
+    padding: '9px 24px', borderRadius: 24, textTransform: 'uppercase',
   },
 
   // Left dots
   dots: {
-    position:'absolute', left:28, top:'50%', transform:'translateY(-50%)',
-    display:'flex', flexDirection:'column', gap:12, zIndex:20,
+    position: 'absolute', left: 28, top: '50%', transform: 'translateY(-50%)',
+    display: 'flex', flexDirection: 'column', gap: 12, zIndex: 20,
   },
 
   // Right highlights
   hlPanel: {
-    position:'absolute', right:46, top:'50%', transform:'translateY(-50%)',
-    display:'flex', flexDirection:'column', gap:2, zIndex:20,
+    position: 'absolute', right: 46, top: '50%', transform: 'translateY(-50%)',
+    display: 'flex', flexDirection: 'column', gap: 2, zIndex: 20,
   },
   hlLine: {
-    position:'absolute', right:3, top:0, bottom:0,
-    width:1, background:'rgba(255,255,255,.12)',
+    position: 'absolute', right: 3, top: 0, bottom: 0,
+    width: 1, background: 'rgba(255,255,255,.12)',
   },
-  hlRow:  { display:'flex', alignItems:'center', gap:12, padding:'7px 0' },
-  hlName: { fontSize:'.67rem', fontWeight:700, letterSpacing:'.14em', textTransform:'uppercase' },
+  hlRow: { display: 'flex', alignItems: 'center', gap: 12, padding: '7px 0' },
+  hlName: { fontSize: '.68rem', fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase' },
 
   // Bottom progress
   progress: {
-    position:'absolute', bottom:32, left:'50%', transform:'translateX(-50%)',
-    display:'flex', alignItems:'center', gap:10, zIndex:20,
+    position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)',
+    display: 'flex', alignItems: 'center', gap: 10, zIndex: 20,
   },
 
   // Tagline
   tagline: {
-    position:'absolute', bottom:34, left:42, zIndex:20,
-    color:'rgba(255,255,255,.42)', fontSize:'.63rem',
-    letterSpacing:'.18em', textTransform:'uppercase', fontWeight:500,
+    position: 'absolute', bottom: 34, left: 42, zIndex: 20,
+    color: 'rgba(255,255,255,.5)', fontSize: '.65rem',
+    letterSpacing: '.18em', textTransform: 'uppercase', fontWeight: 600,
   },
 
   // Loading
   overlay: {
-    position:'absolute', inset:0, background:'#030b1c',
-    display:'flex', flexDirection:'column',
-    alignItems:'center', justifyContent:'center', zIndex:100,
+    position: 'absolute', inset: 0, background: '#030b1c',
+    display: 'flex', flexDirection: 'column',
+    alignItems: 'center', justifyContent: 'center', zIndex: 100,
   },
   spinner: {
-    width:52, height:52, borderRadius:'50%',
-    border:'3px solid rgba(30,106,255,.18)', borderTopColor:'#1e6aff',
-    marginBottom:20,
+    width: 52, height: 52, borderRadius: '50%',
+    border: '3px solid rgba(30,106,255,.18)', borderTopColor: '#1e6aff',
+    marginBottom: 20,
   },
   loadingText: {
-    color:'rgba(255,255,255,.42)', fontSize:'.72rem',
-    letterSpacing:'.26em', textTransform:'uppercase',
+    color: 'rgba(255,255,255,.42)', fontSize: '.72rem',
+    letterSpacing: '.26em', textTransform: 'uppercase',
   },
 };
