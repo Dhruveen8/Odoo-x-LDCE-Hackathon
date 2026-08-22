@@ -7,6 +7,7 @@ import Notification from './components/common/Notification';
 import CreateTripModal from './views/CreateTripModal';
 
 // Views
+import LandingPage from './views/LandingPage';
 import AuthView from './views/AuthView';
 import DashboardView from './views/DashboardView';
 import MyTripsView from './views/MyTripsView';
@@ -25,6 +26,8 @@ import AdminDashboardView from './views/AdminDashboardView';
 function AppContent() {
   const { currentView, isAuthenticated } = useApp();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  if (currentView === 'landing') return <LandingPage />;
 
   // If on dedicated auth view or unauthenticated
   if (currentView === 'auth' || !isAuthenticated) {

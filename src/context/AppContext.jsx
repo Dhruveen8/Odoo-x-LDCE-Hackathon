@@ -56,7 +56,7 @@ export function AppProvider({ children }) {
   }, [trips]);
 
   // Active view navigation
-  const [currentView, setCurrentView] = useState('dashboard');
+  const [currentView, setCurrentView] = useState('landing');
   const [activeTripId, setActiveTripId] = useState('trip-grand-europe');
 
   // Selected stop context for cross-navigation to vehicle/guide explorers
