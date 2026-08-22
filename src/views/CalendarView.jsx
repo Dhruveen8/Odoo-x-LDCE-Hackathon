@@ -1,236 +1,290 @@
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   Calendar as CalendarIcon, 
-  ChevronLeft, 
-  ChevronRight, 
-  Clock, 
   MapPin, 
   Sparkles, 
-  Plus, 
-  Sun, 
-  Moon, 
-  Coffee,
-  Car,
-  Compass,
-  CheckCircle2
+  Car, 
+  UserCheck, 
+  ChevronRight, 
+  Clock,
+  Building
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export default function CalendarView() {
-  const { activeTrip, setCurrentView, formatCurrency } = useApp();
-  const [selectedDayNumber, setSelectedDayNumber] = useState(1);
+  const { trips, activeTrip, setActiveTripId, formatCurrency } = useApp();
+  const currentTrip = activeTrip || trips[0];
 
-  if (!activeTrip) {
-    return (
-      <div className="glass-panel" style={{ padding: '60px 20px', textAlign: 'center' }}>
-        <h3>No itinerary selected for calendar view</h3>
-        <button onClick={() => setCurrentView('my-trips')} className="btn btn-primary" style={{ marginTop: '16px' }}>
-          Select a Trip
-        </button>
-      </div>
-    );
-  }
+  const [expandedDay, setExpandedDay] = useState(1);
 
-  // Days simulation including vehicle rentals and tour guides
-  const days = [];
+  // Generate day-by-day timeline from stops
+  const daysList = [];
   let dayCounter = 1;
-  activeTrip.stops?.forEach(stop => {
-    for (let i = 1; i <= (stop.stayDays || 1); i++) {
-      const currentDay = dayCounter;
-      const dayActivities = stop.activities?.filter(a => (a.day || 1) === currentDay) || [];
-      days.push({
-        dayNumber: currentDay,
+
+  (currentTrip?.stops || []).forEach((stop) => {
+    const stayDays = Number(stop.stayDays) || 3;
+    for (let d = 1; d <= stayDays; d++) {
+      daysList.push({
+        dayNumber: dayCounter,
+        dayOfStop: d,
+        stopId: stop.id,
         cityName: stop.cityName,
         country: stop.country,
         lodging: stop.lodgingName,
-        vehicles: stop.vehicleRentals || [],
-        guides: stop.guideBookings || [],
-        activities: dayActivities
+        activities: (stop.activities || []).filter(a => Number(a.day) === d || (!a.day && d === 1)),
+        vehicles: (stop.vehicleRentals || []),
+        guides: (stop.guideBookings || [])
       });
       dayCounter++;
     }
   });
 
-  const activeDaySchedule = days.find(d => d.dayNumber === selectedDayNumber) || days[0];
-
-  const timeSlots = [
-    { label: 'Morning (08:00 - 12:00)', icon: Coffee, period: 'Morning' },
-    { label: 'Afternoon (12:00 - 17:00)', icon: Sun, period: 'Afternoon' },
-    { label: 'Evening & Sunset (17:00 - 21:00)', icon: Sparkles, period: 'Evening' },
-    { label: 'Night (21:00+)', icon: Moon, period: 'Night' }
-  ];
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+    <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 0' }}>
       
       {/* ── Header ── */}
-      <div className="liquid-glass" style={{ padding: '24px 28px', borderRadius: 'var(--r-xl)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+        flexWrap: 'wrap',
+        gap: '24px',
+        marginBottom: '40px'
+      }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="badge-tag primary">
-              <CalendarIcon size={14} /> Trip Calendar &amp; Daily Schedule
-            </span>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{activeTrip.title}</span>
-          </div>
-          <h2 style={{ fontSize: '2rem', fontWeight: 800, marginTop: '4px' }}>
-            Interactive Day Planner
-          </h2>
-          <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-            Select a day from the itinerary strip to inspect or customize activities, vehicle coverage, and guide sessions.
-          </p>
+          <span className="gt-label">DAY-BY-DAY TIMELINE</span>
+          <h1 className="gt-h1" style={{ marginTop: '4px' }}>TRIP CALENDAR</h1>
         </div>
 
-        <button onClick={() => setCurrentView('itinerary-builder')} className="btn btn-sm btn-secondary">
-          Edit Stops &amp; Dates
-        </button>
+        {/* Trip Selector */}
+        <select
+          value={currentTrip?.id}
+          onChange={(e) => setActiveTripId(e.target.value)}
+          className="input-field"
+          style={{ width: 'auto', fontWeight: 700, borderRadius: 'var(--r-full)' }}
+        >
+          {(trips || []).map(t => (
+            <option key={t.id} value={t.id}>
+              {t.title}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {/* ── Horizontal Day Selector Carousel ── */}
-      <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px' }}>
-        {days.map(d => {
-          const isSelected = d.dayNumber === selectedDayNumber;
-          return (
-            <motion.div
-              key={d.dayNumber}
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setSelectedDayNumber(d.dayNumber)}
-              style={{
-                minWidth: '140px',
-                padding: '16px 14px',
-                borderRadius: 'var(--r-md)',
-                background: isSelected ? 'var(--gradient-brand)' : 'rgba(255,255,255,0.04)',
-                color: isSelected ? '#ffffff' : 'var(--text-primary)',
-                border: `1.5px solid ${isSelected ? 'transparent' : 'var(--border-subtle)'}`,
-                cursor: 'pointer',
-                boxShadow: isSelected ? '0 8px 24px rgba(99, 102, 241, 0.4)' : 'none',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '4px'
-              }}
-            >
-              <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', opacity: isSelected ? 0.9 : 0.6 }}>
-                DAY {d.dayNumber}
-              </span>
-              <div style={{ fontWeight: 800, fontSize: '1.05rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {d.cityName}
-              </div>
-              <div style={{ display: 'flex', gap: '4px', marginTop: '2px' }}>
-                <span style={{ fontSize: '0.72rem', opacity: isSelected ? 0.9 : 0.6 }}>
-                  {d.activities.length} Acts
-                </span>
-                {d.vehicles.length > 0 && <span style={{ fontSize: '0.72rem' }}>🚗</span>}
-                {d.guides.length > 0 && <span style={{ fontSize: '0.72rem' }}>🧭</span>}
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
+      {/* ── Editorial Days Timeline ── */}
+      {daysList.length === 0 ? (
+        <div style={{
+          textAlign: 'center',
+          padding: '80px 24px',
+          background: 'var(--surface)',
+          borderRadius: 'var(--r-2xl)',
+          border: '1px solid var(--border)'
+        }}>
+          <h3 className="gt-h3">No itinerary days found</h3>
+          <p className="gt-body" style={{ marginTop: '8px' }}>
+            Add stops to this trip to populate the timeline.
+          </p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {daysList.map((day) => {
+            const isExpanded = expandedDay === day.dayNumber;
+            const totalItems = day.activities.length + day.vehicles.length + day.guides.length;
 
-      {/* ── Selected Day Hourly Schedule ── */}
-      {activeDaySchedule && (
-        <div className="liquid-glass" style={{ padding: '28px', borderRadius: 'var(--r-xl)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span className="badge-tag primary" style={{ fontSize: '0.9rem', fontWeight: 800 }}>Day {activeDaySchedule.dayNumber}</span>
-                <h3 style={{ fontSize: '1.4rem', fontWeight: 800 }}>
-                  {activeDaySchedule.cityName}, {activeDaySchedule.country}
-                </h3>
-              </div>
-              {activeDaySchedule.lodging && (
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  🏨 Stay: {activeDaySchedule.lodging}
-                </div>
-              )}
-            </div>
-
-            {/* Day Services Badges */}
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {activeDaySchedule.vehicles.map(v => (
-                <span key={v.id} className="badge-tag primary" style={{ background: 'rgba(139,92,246,0.15)', borderColor: 'rgba(139,92,246,0.3)', color: '#c4b5fd' }}>
-                  🚗 Active Rental: {v.name}
-                </span>
-              ))}
-              {activeDaySchedule.guides.map(g => (
-                <span key={g.id} className="badge-tag success" style={{ background: 'rgba(16,185,129,0.15)', borderColor: 'rgba(16,185,129,0.3)', color: '#6ee7b7' }}>
-                  🧭 Guide Booked: {g.name} ({g.duration})
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Time Slot Segments */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {timeSlots.map((slot, sIdx) => {
-              const Icon = slot.icon;
-              const slotActivities = activeDaySchedule.activities.filter(a => {
-                const hour = parseInt(a.time?.split(':')[0] || '12', 10);
-                if (slot.period === 'Morning') return hour < 12;
-                if (slot.period === 'Afternoon') return hour >= 12 && hour < 17;
-                if (slot.period === 'Evening') return hour >= 17 && hour < 21;
-                return hour >= 21;
-              });
-
-              return (
+            return (
+              <motion.div
+                key={day.dayNumber}
+                className="gt-card"
+                style={{
+                  borderRadius: 'var(--r-xl)',
+                  overflow: 'hidden',
+                  borderColor: isExpanded ? 'var(--primary)' : 'var(--border)'
+                }}
+              >
+                {/* Day Header Row */}
                 <div
-                  key={sIdx}
+                  onClick={() => setExpandedDay(isExpanded ? null : day.dayNumber)}
                   style={{
-                    padding: '16px 20px',
-                    borderRadius: 'var(--r-md)',
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid var(--border-subtle)',
                     display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px'
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '24px',
+                    cursor: 'pointer',
+                    background: isExpanded ? 'var(--hover)' : 'var(--surface)',
+                    transition: 'background 0.2s'
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Icon size={18} color="var(--brand-indigo)" />
-                    <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{slot.label}</span>
-                    <span className="badge-tag" style={{ fontSize: '0.72rem' }}>
-                      {slotActivities.length} Scheduled
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <span className="gt-label" style={{ 
+                      fontSize: '14px', 
+                      fontWeight: 900, 
+                      color: isExpanded ? 'var(--primary)' : 'var(--tertiary)',
+                      minWidth: '60px'
+                    }}>
+                      DAY 0{day.dayNumber}
                     </span>
+
+                    <div>
+                      <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--primary)' }}>
+                        {day.cityName}
+                      </h3>
+                      <span style={{ fontSize: '13px', color: 'var(--secondary)' }}>
+                        {day.country} • Stop Day {day.dayOfStop}
+                      </span>
+                    </div>
                   </div>
 
-                  {slotActivities.length === 0 ? (
-                    <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontStyle: 'italic', paddingLeft: '28px' }}>
-                      No activity scheduled for this window. Open time for city exploration or leisurely dining.
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingLeft: '28px' }}>
-                      {slotActivities.map(act => (
-                        <div
-                          key={act.id}
-                          style={{
-                            padding: '12px 16px',
-                            background: 'rgba(255,255,255,0.04)',
-                            borderRadius: 'var(--r-sm)',
-                            border: '1px solid var(--border-subtle)',
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <span className="gt-badge" style={{ fontSize: '11px' }}>
+                      {totalItems} {totalItems === 1 ? 'Event' : 'Events'}
+                    </span>
+                    <ChevronRight
+                      size={18}
+                      color="var(--tertiary)"
+                      style={{
+                        transform: isExpanded ? 'rotate(90deg)' : 'none',
+                        transition: 'transform 0.2s'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Day Expanded Events */}
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                      style={{ padding: '0 24px 24px', borderTop: '1px solid var(--border)' }}
+                    >
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '20px' }}>
+                        
+                        {/* Lodging Item */}
+                        {day.lodging && (
+                          <div style={{
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'space-between'
-                          }}
-                        >
-                          <div>
-                            <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{act.title}</div>
-                            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                              ⏰ {act.time} ({act.durationHours}h) • {act.category} {act.notes && `• "${act.notes}"`}
+                            gap: '14px',
+                            padding: '14px 18px',
+                            borderRadius: 'var(--r-md)',
+                            background: 'var(--hover)',
+                            border: '1px solid var(--border)'
+                          }}>
+                            <Building size={16} color="var(--accent-blue)" />
+                            <div style={{ flex: 1 }}>
+                              <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--primary)' }}>
+                                {day.lodging}
+                              </span>
+                              <span style={{ fontSize: '11px', color: 'var(--tertiary)', display: 'block' }}>
+                                ACCOMMODATION
+                              </span>
                             </div>
                           </div>
-                          <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
-                            {formatCurrency(act.cost)}
+                        )}
+
+                        {/* Activities */}
+                        {day.activities.map((act, aIdx) => (
+                          <div
+                            key={act.id || aIdx}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '14px',
+                              padding: '14px 18px',
+                              borderRadius: 'var(--r-md)',
+                              background: 'var(--hover)',
+                              border: '1px solid var(--border)'
+                            }}
+                          >
+                            <Sparkles size={16} color="#ec4899" />
+                            <div style={{ flex: 1 }}>
+                              <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--primary)' }}>
+                                {act.title}
+                              </span>
+                              <span style={{ fontSize: '11px', color: 'var(--tertiary)', display: 'block' }}>
+                                {act.category || 'Experience'} • {act.time || '10:00 AM'}
+                              </span>
+                            </div>
+                            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--primary)' }}>
+                              {formatCurrency(act.cost || 0)}
+                            </span>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+
+                        {/* Vehicles */}
+                        {day.vehicles.map((v, vIdx) => (
+                          <div
+                            key={v.id || vIdx}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '14px',
+                              padding: '14px 18px',
+                              borderRadius: 'var(--r-md)',
+                              background: 'var(--hover)',
+                              border: '1px solid var(--border)'
+                            }}
+                          >
+                            <Car size={16} color="#10b981" />
+                            <div style={{ flex: 1 }}>
+                              <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--primary)' }}>
+                                {v.name} ({v.type})
+                              </span>
+                              <span style={{ fontSize: '11px', color: 'var(--tertiary)', display: 'block' }}>
+                                TRANSIT RENTAL • {v.provider}
+                              </span>
+                            </div>
+                            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--primary)' }}>
+                              {formatCurrency(v.totalCost || v.dailyRate || 0)}
+                            </span>
+                          </div>
+                        ))}
+
+                        {/* Guides */}
+                        {day.guides.map((g, gIdx) => (
+                          <div
+                            key={g.id || gIdx}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '14px',
+                              padding: '14px 18px',
+                              borderRadius: 'var(--r-md)',
+                              background: 'var(--hover)',
+                              border: '1px solid var(--border)'
+                            }}
+                          >
+                            <UserCheck size={16} color="#c9a96e" />
+                            <div style={{ flex: 1 }}>
+                              <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--primary)' }}>
+                                {g.name}
+                              </span>
+                              <span style={{ fontSize: '11px', color: 'var(--tertiary)', display: 'block' }}>
+                                PRIVATE LOCAL GUIDE • {g.duration || 'Full Day'}
+                              </span>
+                            </div>
+                            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--primary)' }}>
+                              {formatCurrency(g.totalCost || g.rate || 0)}
+                            </span>
+                          </div>
+                        ))}
+
+                        {totalItems === 0 && !day.lodging && (
+                          <span style={{ fontSize: '13px', color: 'var(--tertiary)', padding: '8px 0' }}>
+                            Free day. Add experiences or transit via the Itinerary Builder.
+                          </span>
+                        )}
+
+                      </div>
+                    </motion.div>
                   )}
-                </div>
-              );
-            })}
-          </div>
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
         </div>
       )}
 

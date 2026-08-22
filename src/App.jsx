@@ -67,31 +67,31 @@ function AppContent() {
   const isDashboard = currentView === 'dashboard';
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
-      {/* Fixed liquid glass sidebar — 220px */}
+    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+      {/* Fixed slim sidebar — 64px */}
       <Sidebar onOpenCreateModal={() => setIsCreateModalOpen(true)} />
 
-      {/* Fixed liquid glass navbar — spans right of sidebar to edge */}
+      {/* Minimal navbar */}
       <Navbar onOpenCreateModal={() => setIsCreateModalOpen(true)} />
 
-      {/* Main content — push right past sidebar, down past navbar */}
+      {/* Main content */}
       <main
         style={{
           marginLeft:  'var(--sidebar-w)',
           paddingTop:  isDashboard ? 0 : 'var(--navbar-h)',
           minHeight:   '100vh',
-          paddingLeft: isDashboard ? 0 : '28px',
-          paddingRight: isDashboard ? 0 : '28px',
-          paddingBottom: '60px'
+          paddingLeft: isDashboard ? 0 : 'clamp(20px, 4vw, 48px)',
+          paddingRight: isDashboard ? 0 : 'clamp(20px, 4vw, 48px)',
+          paddingBottom: '80px'
         }}
       >
         <AnimatePresence mode="wait">
           <motion.div
             key={currentView}
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.28, ease: [0.22,1,0.36,1] }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.22, ease: [0.22,1,0.36,1] }}
           >
             {renderActiveView()}
           </motion.div>

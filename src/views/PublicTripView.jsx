@@ -4,261 +4,184 @@ import {
   Share2, 
   Copy, 
   Check, 
-  Heart, 
-  QrCode, 
-  ExternalLink, 
   MapPin, 
   Calendar, 
-  DollarSign, 
-  Sparkles,
-  Users,
-  MessageSquare,
-  Car,
+  Sparkles, 
+  Car, 
+  UserCheck, 
+  ArrowUpRight,
   Compass
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { useApp } from '../context/AppContext';
-import RouteMapCanvas from '../components/itinerary/RouteMapCanvas';
-import Modal from '../components/common/Modal';
 
 export default function PublicTripView() {
-  const { activeTrip, cloneTrip, formatCurrency, computeTripFinances, addToast, setCurrentView } = useApp();
-
+  const { activeTrip, cloneTrip, formatCurrency, computeTripFinances, addToast } = useApp();
   const [copied, setCopied] = useState(false);
-  const [likes, setLikes] = useState(activeTrip?.likesCount || 128);
-  const [hasLiked, setHasLiked] = useState(false);
-  const [showQrModal, setShowQrModal] = useState(false);
 
   if (!activeTrip) {
     return (
-      <div className="glass-panel" style={{ padding: '60px 20px', textAlign: 'center' }}>
-        <h3>No itinerary selected for public preview</h3>
-        <button onClick={() => setCurrentView('my-trips')} className="btn btn-primary" style={{ marginTop: '16px' }}>
-          Select a Trip
-        </button>
+      <div style={{ maxWidth: '800px', margin: '80px auto', textAlign: 'center' }}>
+        <h2 className="gt-h2">No trip available to share</h2>
       </div>
     );
   }
 
   const finances = computeTripFinances(activeTrip);
-  const shareableUrl = `https://globetrotter.io/trips/${activeTrip.shareSlug || 'itinerary-2026'}`;
+  const stops = activeTrip.stops || [];
 
   const handleCopyLink = () => {
-    navigator.clipboard?.writeText(shareableUrl);
+    navigator.clipboard.writeText(window.location.href);
     setCopied(true);
-    addToast("Link Copied!", "Shareable public link copied to clipboard.", "success");
-    setTimeout(() => setCopied(false), 2500);
-  };
-
-  const handleLike = () => {
-    if (!hasLiked) {
-      setLikes(prev => prev + 1);
-      setHasLiked(true);
-      addToast("Trip Liked! ❤️", "Thanks for showing love to this itinerary.", "success");
-    }
-  };
-
-  const handleCopyTrip = () => {
-    cloneTrip(activeTrip);
-    try {
-      confetti({ particleCount: 70, spread: 60 });
-    } catch (e) {}
-    setCurrentView('my-trips');
+    addToast("Link Copied 🔗", "Public itinerary link copied to clipboard.", "success");
+    setTimeout(() => setCopied(false), 3000);
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+    <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 0' }}>
       
-      {/* ── Public Share Controls Bar ── */}
-      <div className="liquid-glass" style={{ padding: '20px 24px', borderRadius: 'var(--r-xl)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="badge-tag success">
-              <Share2 size={12} /> Public Community Itinerary
-            </span>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Read-Only Presentation View</span>
-          </div>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginTop: '2px' }}>
-            Share or Clone this Itinerary
-          </h3>
+      {/* ── Share Action Strip ── */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        background: 'var(--surface)',
+        padding: '16px 24px',
+        borderRadius: 'var(--r-xl)',
+        border: '1px solid var(--border)',
+        marginBottom: '32px',
+        flexWrap: 'wrap',
+        gap: '16px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Share2 size={16} color="var(--accent-blue)" />
+          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--primary)' }}>
+            PUBLIC ITINERARY LINK
+          </span>
         </div>
 
-        {/* Share actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '12px' }}>
           <button
             onClick={handleCopyLink}
-            className="btn btn-secondary"
-            style={{ gap: '8px' }}
+            className="btn btn-secondary btn-sm"
           >
-            {copied ? <Check size={16} color="var(--brand-emerald)" /> : <Copy size={16} />}
-            <span>{copied ? 'Copied URL!' : 'Copy Share Link'}</span>
+            {copied ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
+            <span>{copied ? 'COPIED' : 'COPY LINK'}</span>
           </button>
 
           <button
-            onClick={() => setShowQrModal(true)}
-            className="btn btn-secondary"
-            title="Show QR Code"
+            onClick={() => cloneTrip(activeTrip)}
+            className="btn btn-primary btn-sm"
           >
-            <QrCode size={16} />
-            <span>QR Code</span>
+            <span>CLONE TO MY TRIPS</span>
+            <ArrowUpRight size={14} />
           </button>
-
-          <motion.button
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
-            onClick={handleCopyTrip}
-            className="btn btn-primary"
-          >
-            <Sparkles size={16} />
-            <span>Copy to My Trips</span>
-          </motion.button>
         </div>
       </div>
 
-      {/* ── Main Cover & Overview ── */}
-      <div className="liquid-glass" style={{ padding: 0, overflow: 'hidden', borderRadius: 'var(--r-xl)' }}>
-        <div style={{ height: '300px', position: 'relative' }}>
-          <img src={activeTrip.coverImage} alt={activeTrip.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(14,13,26,0.95) 0%, rgba(14,13,26,0.3) 60%, transparent 100%)' }} />
-
-          <div style={{ position: 'absolute', bottom: '28px', left: '28px', right: '28px', color: '#ffffff' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-              <span className="badge-tag primary" style={{ background: 'rgba(99,102,241,0.85)', color: '#ffffff' }}>
-                Curated Itinerary
-              </span>
-              <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>
-                📅 {activeTrip.startDate} to {activeTrip.endDate}
-              </span>
-            </div>
-            <h1 style={{ fontSize: '2.4rem', fontWeight: 800, color: '#ffffff' }}>{activeTrip.title}</h1>
-            <p style={{ fontSize: '1rem', opacity: 0.9, maxWidth: '780px', marginTop: '6px' }}>
-              {activeTrip.description}
-            </p>
-          </div>
-        </div>
-
-        {/* Social Meta Bar */}
-        <div style={{ padding: '16px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', background: 'rgba(255,255,255,0.02)', borderTop: '1px solid var(--border-subtle)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <button
-              onClick={handleLike}
-              className="btn btn-sm btn-secondary"
-              style={{ gap: '6px', color: hasLiked ? '#ef4444' : 'inherit' }}
-            >
-              <Heart size={16} color={hasLiked ? '#ef4444' : 'currentColor'} fill={hasLiked ? '#ef4444' : 'none'} />
-              <span>{likes} Travelers Liked</span>
-            </button>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              📍 {activeTrip.stops?.length || 0} Destinations • {formatCurrency(finances.totalEstimated)} Total Cost
-            </span>
-          </div>
-
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button
-              onClick={() => {
-                window.open(`https://twitter.com/intent/tweet?text=Check out this incredible itinerary on GlobeTrotter: ${encodeURIComponent(shareableUrl)}`, '_blank');
-              }}
-              className="btn btn-sm btn-ghost"
-              style={{ fontSize: '0.8rem' }}
-            >
-              Share to X / Twitter
-            </button>
-            <button
-              onClick={() => {
-                window.open(`https://api.whatsapp.com/send?text=Check out this trip: ${encodeURIComponent(shareableUrl)}`, '_blank');
-              }}
-              className="btn btn-sm btn-ghost"
-              style={{ fontSize: '0.8rem', color: 'var(--brand-emerald)' }}
-            >
-              WhatsApp
-            </button>
-          </div>
+      {/* ── Editorial Hero ── */}
+      <div style={{
+        position: 'relative',
+        borderRadius: 'var(--r-2xl)',
+        overflow: 'hidden',
+        height: '420px',
+        marginBottom: '48px'
+      }}>
+        <img
+          src={activeTrip.coverImage || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=85'}
+          alt={activeTrip.title}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.4) 100%)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-end',
+          padding: '40px'
+        }}>
+          <span className="gt-label" style={{ color: 'var(--accent-gold)' }}>GLOBETROTTER EDITORIAL</span>
+          <h1 className="gt-display" style={{ color: '#fff', marginTop: '6px', fontSize: 'clamp(36px, 5vw, 64px)' }}>
+            {activeTrip.title}
+          </h1>
+          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)', marginTop: '8px' }}>
+            {activeTrip.startDate} — {activeTrip.endDate} • {stops.length} Destination Stops • Est. {formatCurrency(finances.totalEstimated)}
+          </p>
         </div>
       </div>
 
-      {/* ── Multi-City Journey Route Map ── */}
-      <RouteMapCanvas stops={activeTrip.stops || []} tripTitle={activeTrip.title} />
-
-      {/* ── Stop by Stop Overview with Activities, Vehicles & Guides ── */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <h3 style={{ fontSize: '1.4rem', fontWeight: 800 }}>Complete Journey Schedule</h3>
-        
-        {activeTrip.stops?.map((stop, sIdx) => (
-          <div
-            key={stop.id}
-            className="liquid-glass"
-            style={{ padding: '24px', borderRadius: 'var(--r-xl)', display: 'flex', flexDirection: 'column', gap: '16px' }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '14px', flexWrap: 'wrap', gap: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--gradient-brand)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
-                  {sIdx + 1}
+      {/* ── Route Stop Timeline ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+        {stops.map((stop, sIdx) => (
+          <div key={stop.id || sIdx} className="gt-card" style={{ padding: '32px', borderRadius: 'var(--r-2xl)' }}>
+            
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '16px' }}>
+                <span className="gt-label" style={{ fontSize: '14px', fontWeight: 900, color: 'var(--accent-gold)' }}>
+                  0{sIdx + 1}
                 </span>
-                <div>
-                  <h4 style={{ fontSize: '1.25rem', fontWeight: 800 }}>{stop.cityName}, {stop.country}</h4>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{stop.stayDays} Days Stay • Stay at {stop.lodgingName}</div>
-                </div>
+                <h2 className="gt-h2" style={{ color: 'var(--primary)' }}>
+                  {stop.cityName}
+                </h2>
+                <span style={{ fontSize: '14px', color: 'var(--secondary)' }}>{stop.country}</span>
               </div>
-
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <span className="badge-tag success">Transit: {stop.transitMode}</span>
-                {stop.vehicleRentals?.length > 0 && <span className="badge-tag primary">🚗 {stop.vehicleRentals[0].name}</span>}
-                {stop.guideBookings?.length > 0 && <span className="badge-tag" style={{ background: 'rgba(16,185,129,0.15)', color: '#6ee7b7' }}>🧭 Guide: {stop.guideBookings[0].name}</span>}
-              </div>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--primary)' }}>
+                {stop.stayDays || 3} DAYS
+              </span>
             </div>
 
             {/* Activities list */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '12px' }}>
-              {stop.activities?.map(act => (
-                <div
-                  key={act.id}
-                  style={{
-                    padding: '12px 14px',
-                    borderRadius: 'var(--r-md)',
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid var(--border-subtle)'
-                  }}
-                >
-                  <span className="badge-tag primary" style={{ fontSize: '0.7rem' }}>Day {act.day} • {act.time}</span>
-                  <div style={{ fontWeight: 700, fontSize: '0.95rem', margin: '4px 0 2px' }}>{act.title}</div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{act.notes}</div>
+            {(stop.activities || []).length > 0 && (
+              <div style={{ marginTop: '16px' }}>
+                <span className="gt-label-sm" style={{ marginBottom: '12px', display: 'block' }}>EXPERIENCES</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {stop.activities.map(act => (
+                    <div
+                      key={act.id}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '12px 16px',
+                        background: 'var(--hover)',
+                        borderRadius: 'var(--r-md)'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <Sparkles size={14} color="#ec4899" />
+                        <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--primary)' }}>
+                          {act.title}
+                        </span>
+                      </div>
+                      <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--primary)' }}>
+                        {formatCurrency(act.cost || 0)}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
+
+            {/* Vehicles & Guides */}
+            {((stop.vehicleRentals || []).length > 0 || (stop.guideBookings || []).length > 0) && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
+                {(stop.vehicleRentals || []).map(v => (
+                  <span key={v.id} className="gt-badge" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Car size={13} color="#10b981" /> {v.name} ({formatCurrency(v.totalCost || v.dailyRate || 0)})
+                  </span>
+                ))}
+                {(stop.guideBookings || []).map(g => (
+                  <span key={g.id} className="gt-badge" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <UserCheck size={13} color="#c9a96e" /> {g.name} ({formatCurrency(g.totalCost || g.rate || 0)})
+                  </span>
+                ))}
+              </div>
+            )}
+
           </div>
         ))}
       </div>
-
-      {/* ── QR Code Modal ── */}
-      <Modal isOpen={showQrModal} onClose={() => setShowQrModal(false)} title="Scan &amp; Open on Mobile" maxWidth="400px">
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '16px' }}>
-          <div style={{ width: '200px', height: '200px', background: '#ffffff', padding: '16px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-md)' }}>
-            <svg viewBox="0 0 100 100" width="100%" height="100%">
-              <rect x="0" y="0" width="30" height="30" fill="#000000" />
-              <rect x="5" y="5" width="20" height="20" fill="#ffffff" />
-              <rect x="10" y="10" width="10" height="10" fill="#000000" />
-              <rect x="70" y="0" width="30" height="30" fill="#000000" />
-              <rect x="75" y="5" width="20" height="20" fill="#ffffff" />
-              <rect x="80" y="10" width="10" height="10" fill="#000000" />
-              <rect x="0" y="70" width="30" height="30" fill="#000000" />
-              <rect x="5" y="75" width="20" height="20" fill="#ffffff" />
-              <rect x="10" y="80" width="10" height="10" fill="#000000" />
-              <rect x="40" y="10" width="10" height="20" fill="#000000" />
-              <rect x="40" y="40" width="20" height="20" fill="#000000" />
-              <rect x="10" y="40" width="20" height="10" fill="#000000" />
-              <rect x="70" y="40" width="20" height="20" fill="#000000" />
-              <rect x="40" y="70" width="20" height="20" fill="#000000" />
-              <rect x="70" y="70" width="20" height="20" fill="#000000" />
-            </svg>
-          </div>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            Scan with your phone's camera to immediately access this live itinerary.
-          </p>
-          <button onClick={() => setShowQrModal(false)} className="btn btn-secondary" style={{ width: '100%' }}>
-            Done
-          </button>
-        </div>
-      </Modal>
 
     </div>
   );

@@ -1,237 +1,229 @@
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   Search, 
   MapPin, 
-  Plus, 
   Heart, 
-  DollarSign, 
+  Plus, 
+  ArrowUpRight, 
   Star, 
-  Compass, 
   Sparkles, 
-  Calendar, 
-  Check, 
-  Globe 
+  Compass,
+  Check
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export default function CitySearchView() {
   const { 
     destinations, 
-    user, 
-    toggleWishlist, 
     activeTrip, 
     addStopToTrip, 
-    setCurrentView,
-    formatCurrency 
+    user, 
+    toggleWishlist, 
+    formatCurrency, 
+    addToast 
   } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedRegion, setSelectedRegion] = useState('All');
-  const [costFilter, setCostFilter] = useState('All');
+  const [selectedTag, setSelectedTag] = useState('ALL');
+  const [selectedCityModal, setSelectedCityModal] = useState(null);
 
-  const regions = ['All', 'Europe', 'Asia', 'North America', 'Africa', 'Oceania', 'Middle East'];
-  const costTiers = ['All', '$', '$$', '$$$', '$$$$'];
+  const tags = ['ALL', 'CULTURAL', 'BEACH', 'NATURE', 'LUXURY', 'HERITAGE'];
 
-  const filteredDestinations = destinations.filter(dest => {
+  const filteredDestinations = (destinations || []).filter(dest => {
     const matchesSearch = dest.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      dest.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      dest.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
-
-    const matchesRegion = selectedRegion === 'All' || dest.region === selectedRegion;
-    const matchesCost = costFilter === 'All' || dest.costIndex === costFilter;
-
-    return matchesSearch && matchesRegion && matchesCost;
+      dest.country.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    if (selectedTag === 'ALL') return matchesSearch;
+    return matchesSearch && (dest.tags || []).some(t => t.toUpperCase() === selectedTag);
   });
 
+  const handleAddStop = (city) => {
+    if (!activeTrip) {
+      addToast("No Active Trip", "Please create or select a trip first.", "warning");
+      return;
+    }
+    addStopToTrip(activeTrip.id, city);
+  };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 0' }}>
       
-      {/* Header Banner */}
-      <div className="glass-panel" style={{ padding: '32px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ maxWidth: '680px', position: 'relative', zIndex: 2 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <span className="badge-tag primary">
-              <Globe size={14} /> Global City Explorer
-            </span>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              {destinations.length} Verified Hotspots
-            </span>
-          </div>
-          <h2 style={{ fontSize: '2.2rem', fontWeight: 800 }}>
-            Find Your Next <span className="text-gradient">Dream Stop</span>
-          </h2>
-          <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            Discover curated cities, local cost benchmarks, popular travel seasons, and seamlessly inject them into your multi-city route.
-          </p>
+      {/* ── Header ── */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+        flexWrap: 'wrap',
+        gap: '24px',
+        marginBottom: '40px'
+      }}>
+        <div>
+          <span className="gt-label">GLOBAL DESTINATIONS</span>
+          <h1 className="gt-h1" style={{ marginTop: '4px' }}>EXPLORE CITIES</h1>
         </div>
+
+        {/* Active Trip Context pill */}
+        {activeTrip && (
+          <div className="gt-badge gold" style={{ padding: '8px 16px', fontSize: '12px' }}>
+            ADDING TO: {activeTrip.title}
+          </div>
+        )}
       </div>
 
-      {/* Search and Filters Bar */}
-      <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        
-        {/* Search input */}
-        <div style={{ position: 'relative' }}>
-          <Search size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+      {/* ── Search & Tag Filter Strip ── */}
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+        marginBottom: '36px'
+      }}>
+        {/* Full-width Search Bar */}
+        <div style={{ position: 'relative', width: '100%' }}>
+          <Search size={18} color="var(--tertiary)" style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)' }} />
           <input
             type="text"
-            placeholder="Search cities, countries, or styles (e.g. Kyoto, Beach, Temples, France)..."
+            placeholder="Search by city, country or experience (e.g. Paris, Tokyo, Goa)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="input-field"
-            style={{ paddingLeft: '48px', height: '48px', fontSize: '1rem' }}
+            style={{
+              paddingLeft: '52px',
+              height: '52px',
+              fontSize: '16px',
+              borderRadius: 'var(--r-full)'
+            }}
           />
         </div>
 
-        {/* Filters Row */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-          {/* Region Pills */}
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            {regions.map(reg => (
-              <button
-                key={reg}
-                onClick={() => setSelectedRegion(reg)}
-                className={selectedRegion === reg ? "btn btn-sm btn-primary" : "btn btn-sm btn-secondary"}
-                style={{ fontSize: '0.8rem', padding: '6px 12px' }}
-              >
-                {reg}
-              </button>
-            ))}
-          </div>
-
-          {/* Cost Index Filter */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Cost:</span>
-            {costTiers.map(cost => (
-              <button
-                key={cost}
-                onClick={() => setCostFilter(cost)}
-                className={costFilter === cost ? "btn btn-sm btn-primary" : "btn btn-sm btn-ghost"}
-                style={{ fontSize: '0.8rem', padding: '4px 10px' }}
-              >
-                {cost}
-              </button>
-            ))}
-          </div>
+        {/* Category Pills */}
+        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
+          {tags.map(tag => (
+            <button
+              key={tag}
+              onClick={() => setSelectedTag(tag)}
+              style={{
+                padding: '8px 18px',
+                borderRadius: 'var(--r-full)',
+                border: '1px solid var(--border)',
+                background: selectedTag === tag ? 'var(--primary)' : 'var(--surface)',
+                color: selectedTag === tag ? 'var(--bg)' : 'var(--secondary)',
+                fontSize: '12px',
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {tag}
+            </button>
+          ))}
         </div>
-
       </div>
 
-      {/* Destination Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '24px' }}>
-        {filteredDestinations.map((dest, idx) => {
-          const isWishlisted = user.wishlistDestinations?.includes(dest.id);
-          const isAlreadyInTrip = activeTrip?.stops?.some(s => s.cityId === dest.id);
+      {/* ── Destinations Visual Grid ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '28px' }}>
+        {filteredDestinations.map((dest) => {
+          const isWishlisted = (user?.wishlistDestinations || []).includes(dest.id);
+          const isAlreadyInTrip = (activeTrip?.stops || []).some(s => s.cityName.toLowerCase() === dest.city.toLowerCase());
 
           return (
             <motion.div
               key={dest.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.05 }}
-              className="card-travel"
-              style={{ display: 'flex', flexDirection: 'column' }}
+              whileHover={{ y: -6 }}
+              className="gt-img-card"
+              style={{ height: '420px' }}
             >
-              {/* Photo & badges */}
-              <div style={{ position: 'relative', height: '190px', overflow: 'hidden' }}>
-                <img src={dest.image} alt={dest.city} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%)' }} />
+              <img
+                src={dest.image || 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=800&q=80'}
+                alt={dest.city}
+                loading="lazy"
+              />
+
+              {/* Top Floating Badges */}
+              <div style={{
+                position: 'absolute',
+                top: '16px',
+                left: '16px',
+                right: '16px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                zIndex: 2
+              }}>
+                <span className="gt-badge" style={{ background: 'rgba(0,0,0,0.6)', color: '#fff', borderColor: 'rgba(255,255,255,0.2)' }}>
+                  {dest.country}
+                </span>
 
                 <button
-                  onClick={() => toggleWishlist(dest.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleWishlist(dest.id);
+                  }}
                   style={{
-                    position: 'absolute',
-                    top: '12px',
-                    right: '12px',
-                    background: 'rgba(0,0,0,0.5)',
-                    backdropFilter: 'blur(8px)',
-                    border: 'none',
-                    borderRadius: '50%',
                     width: '36px',
                     height: '36px',
+                    borderRadius: '50%',
+                    background: 'rgba(0,0,0,0.5)',
+                    backdropFilter: 'blur(8px)',
+                    border: '1px solid rgba(255,255,255,0.2)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    color: isWishlisted ? '#ef4444' : '#fff',
+                    transition: 'transform 0.2s'
                   }}
                 >
-                  <Heart size={18} color={isWishlisted ? '#ef4444' : '#ffffff'} fill={isWishlisted ? '#ef4444' : 'none'} />
+                  <Heart size={16} fill={isWishlisted ? '#ef4444' : 'none'} />
                 </button>
-
-                <div style={{ position: 'absolute', top: '12px', left: '12px', display: 'flex', gap: '6px' }}>
-                  <span className="badge-tag" style={{ background: 'rgba(0,0,0,0.6)', color: '#ffffff', backdropFilter: 'blur(6px)' }}>
-                    {dest.region}
-                  </span>
-                  <span className="badge-tag" style={{ background: 'rgba(0,0,0,0.6)', color: '#ffffff', backdropFilter: 'blur(6px)' }}>
-                    {dest.costIndex} Tier
-                  </span>
-                </div>
-
-                <div style={{ position: 'absolute', bottom: '12px', left: '16px', right: '16px', color: '#ffffff' }}>
-                  <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#ffffff' }}>{dest.city}, {dest.country}</h3>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.8rem', opacity: 0.9, marginTop: '2px' }}>
-                    <span>⭐ {dest.rating}</span>
-                    <span>🔥 {dest.popularity}% Popularity</span>
-                  </div>
-                </div>
               </div>
 
-              {/* Card Body */}
-              <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', flex: 1, justifyContent: 'space-between' }}>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-                  {dest.description}
+              {/* Bottom Editorial Content */}
+              <div className="gt-img-card-overlay">
+                <h3 style={{ fontSize: '32px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1 }}>
+                  {dest.city}
+                </h3>
+                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginTop: '6px' }}>
+                  {dest.tagline || 'Rich cultural experiences, architectural marvels, and authentic culinary journeys.'}
                 </p>
 
-                {/* Highlights */}
-                <div>
-                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>
-                    Top Highlights
-                  </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                    {dest.highlights.map((hl, hIdx) => (
-                      <span key={hIdx} className="badge-tag" style={{ fontSize: '0.75rem' }}>
-                        {hl}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Footer Metrics & Add Action */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '14px', borderTop: '1px solid var(--border-subtle)' }}>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginTop: '16px',
+                  paddingTop: '16px',
+                  borderTop: '1px solid rgba(255,255,255,0.2)'
+                }}>
                   <div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>AVG. DAILY SPEND</div>
-                    <div style={{ fontWeight: 800, fontSize: '1rem' }}>{formatCurrency(dest.avgDailyCost)}/day</div>
+                    <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)', display: 'block', fontWeight: 600 }}>EST. DAILY</span>
+                    <span style={{ fontSize: '15px', fontWeight: 800, color: 'var(--accent-gold)' }}>
+                      {formatCurrency(dest.avgDailyCost || 180)}
+                    </span>
                   </div>
 
-                  {activeTrip ? (
-                    <button
-                      disabled={isAlreadyInTrip}
-                      onClick={() => addStopToTrip(activeTrip.id, dest)}
-                      className={isAlreadyInTrip ? "btn btn-sm btn-ghost" : "btn btn-sm btn-primary"}
-                      style={{
-                        background: isAlreadyInTrip ? 'var(--bg-tertiary)' : 'var(--brand-gradient-sunset)',
-                        color: isAlreadyInTrip ? 'var(--text-muted)' : '#ffffff'
-                      }}
-                    >
-                      {isAlreadyInTrip ? (
-                        <>
-                          <Check size={14} />
-                          <span>In Itinerary</span>
-                        </>
-                      ) : (
-                        <>
-                          <Plus size={14} />
-                          <span>Add to Trip</span>
-                        </>
-                      )}
-                    </button>
-                  ) : (
-                    <button onClick={() => setCurrentView('my-trips')} className="btn btn-sm btn-secondary">
-                      Select Trip
-                    </button>
-                  )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddStop(dest);
+                    }}
+                    className="btn btn-sm btn-white"
+                  >
+                    {isAlreadyInTrip ? (
+                      <>
+                        <Check size={14} color="var(--primary)" />
+                        <span>ADDED</span>
+                      </>
+                    ) : (
+                      <>
+                        <Plus size={14} />
+                        <span>ADD TO TRIP</span>
+                      </>
+                    )}
+                  </button>
                 </div>
-
               </div>
             </motion.div>
           );

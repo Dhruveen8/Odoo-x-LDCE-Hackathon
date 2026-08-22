@@ -1,176 +1,94 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { 
-  ShieldAlert, 
-  TrendingUp, 
+  BarChart3, 
   Users, 
   Luggage, 
-  Globe, 
-  Sparkles, 
-  Activity, 
-  BarChart3, 
+  Car, 
+  UserCheck, 
   DollarSign, 
-  CheckCircle2 
+  TrendingUp,
+  ShieldAlert
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export default function AdminDashboardView() {
-  const { adminStats, destinations } = useApp();
+  const { adminStats, trips, formatCurrency } = useApp();
 
-  const maxGrowth = Math.max(...adminStats.monthlyTripsGrowth.map(m => m.count));
+  const stats = [
+    { label: 'ACTIVE EXPLORERS', value: '18,420', change: '+12%', icon: Users },
+    { label: 'SCHEDULED TRIPS', value: String(trips?.length || 4), change: '+8%', icon: Luggage },
+    { label: 'VEHICLE RESERVATIONS', value: '1,280', change: '+24%', icon: Car },
+    { label: 'GUIDE BOOKINGS', value: '840', change: '+18%', icon: UserCheck },
+  ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '40px 0' }}>
       
-      {/* Header Banner */}
-      <div className="glass-panel" style={{ padding: '28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="badge-tag warning">
-              <ShieldAlert size={14} /> Admin Intelligence & Telemetry
-            </span>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Live Platform Analytics</span>
-          </div>
-          <h2 style={{ fontSize: '2rem', fontWeight: 800, marginTop: '4px' }}>
-            GlobeTrotter Executive Dashboard
-          </h2>
-          <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-            Monitor trip creations, global destination adoption, active planner retention, and budget trends.
-          </p>
-        </div>
-
-        <span className="badge-handdrawn" style={{ fontSize: '1rem' }}>
-          Real-time Engine Active
-        </span>
+      {/* ── Header ── */}
+      <div style={{ marginBottom: '40px' }}>
+        <span className="gt-label">SYSTEM CONSOLE</span>
+        <h1 className="gt-h1" style={{ marginTop: '4px' }}>ANALYTICS &amp; OPS</h1>
       </div>
 
-      {/* Primary KPI Metrics */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-        {[
-          { label: 'Total Itineraries Built', value: adminStats.totalTrips.toLocaleString(), icon: Luggage, color: 'var(--brand-primary)', sub: '+24% vs last month' },
-          { label: 'Active Global Planners', value: adminStats.activeUsers.toLocaleString(), icon: Users, color: 'var(--color-success)', sub: '94% satisfaction' },
-          { label: 'Destinations Explored', value: `${adminStats.destinationsCovered} Cities`, icon: Globe, color: 'var(--color-info)', sub: 'Across 62 countries' },
-          { label: 'Avg. Traveler Savings', value: adminStats.averageBudgetSaved, icon: DollarSign, color: 'var(--color-warning)', sub: 'Per planned itinerary' }
-        ].map((kpi, idx) => {
-          const Icon = kpi.icon;
+      {/* ── Key Metric Stats ── */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        gap: '20px',
+        marginBottom: '40px'
+      }}>
+        {stats.map((stat, idx) => {
+          const Icon = stat.icon;
           return (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.08 }}
-              className="glass-panel"
-              style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '16px' }}
-            >
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Icon size={24} color={kpi.color} />
+            <div key={idx} className="gt-card" style={{ padding: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <span className="gt-label">{stat.label}</span>
+                <Icon size={16} color="var(--tertiary)" />
               </div>
-              <div>
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>{kpi.label}</div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 800, lineHeight: 1.2 }}>{kpi.value}</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--color-success)', marginTop: '2px' }}>{kpi.sub}</div>
+              <div style={{ fontSize: '32px', fontWeight: 900, color: 'var(--primary)', letterSpacing: '-0.02em' }}>
+                {stat.value}
               </div>
-            </motion.div>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#10b981', marginTop: '6px', display: 'block' }}>
+                {stat.change} vs last month
+              </span>
+            </div>
           );
         })}
       </div>
 
-      {/* Growth Charts & City Popularity */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '24px' }}>
-        
-        {/* Monthly Trips Created Bar Chart */}
-        <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <TrendingUp size={18} color="var(--brand-primary)" />
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>Monthly Itinerary Volume (2026)</h3>
-            </div>
-            <span className="badge-tag primary">Active Growth</span>
-          </div>
+      {/* ── Platform Logs / Recent Bookings ── */}
+      <div className="gt-card" style={{ padding: '32px', borderRadius: 'var(--r-2xl)' }}>
+        <h3 className="gt-h3" style={{ marginBottom: '20px' }}>Recent System Events</h3>
 
-          {/* SVG Bar Chart */}
-          <div style={{ height: '200px', display: 'flex', alignItems: 'flex-end', gap: '12px', paddingTop: '20px' }}>
-            {adminStats.monthlyTripsGrowth.map((item, idx) => {
-              const heightPercent = (item.count / maxGrowth) * 100;
-              return (
-                <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', height: '100%', justifyContent: 'flex-end' }}>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                    {item.count}
-                  </div>
-                  <motion.div
-                    initial={{ height: 0 }}
-                    animate={{ height: `${heightPercent}%` }}
-                    transition={{ duration: 0.6, delay: idx * 0.05 }}
-                    style={{
-                      width: '100%',
-                      background: idx === adminStats.monthlyTripsGrowth.length - 1 ? 'var(--brand-gradient-sunset)' : 'var(--brand-gradient)',
-                      borderRadius: '6px 6px 0 0'
-                    }}
-                  />
-                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
-                    {item.month}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Top Destination Hotspots Progress */}
-        <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Globe size={18} color="var(--color-info)" />
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>Top Traveled Cities</h3>
-            </div>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Share of Bookings</span>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {adminStats.popularCities.map((pc, idx) => (
-              <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                  <span style={{ fontWeight: 700 }}>{pc.city}</span>
-                  <span style={{ color: 'var(--text-muted)' }}>{pc.count.toLocaleString()} trips ({pc.percentage}%)</span>
-                </div>
-                <div style={{ width: '100%', height: '8px', background: 'var(--bg-tertiary)', borderRadius: '999px', overflow: 'hidden' }}>
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${pc.percentage}%` }}
-                    transition={{ duration: 0.8, delay: idx * 0.08 }}
-                    style={{ height: '100%', background: pc.color, borderRadius: '999px' }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-      </div>
-
-      {/* Experience Category Distribution */}
-      <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>Popular Experience Categories</h3>
-        
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
-          {adminStats.categoryBreakdown.map((cat, idx) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {[
+            { type: 'TRIP', desc: 'New multi-city route created: "Alpine & Lakes Expedition"', time: '12m ago', badge: 'Route' },
+            { type: 'VEHICLE', desc: 'BMW X1 reservation confirmed for Stop: Zurich (3 Days)', time: '44m ago', badge: 'Vehicle' },
+            { type: 'GUIDE', desc: 'Private Guide Booking: Sarah Khan (Paris - Full Day)', time: '2h ago', badge: 'Guide' },
+            { type: 'BUDGET', desc: 'Financial alert: 6-category allocation recalculated for User user-1', time: '4h ago', badge: 'Budget' }
+          ].map((item, i) => (
             <div
-              key={idx}
+              key={i}
               style={{
-                padding: '16px',
-                borderRadius: 'var(--radius-md)',
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border-subtle)',
                 display: 'flex',
+                justifyContent: 'space-between',
                 alignItems: 'center',
-                justifyContent: 'space-between'
+                padding: '14px 18px',
+                borderRadius: 'var(--r-md)',
+                background: 'var(--hover)',
+                border: '1px solid var(--border)'
               }}
             >
-              <div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{cat.name}</div>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, marginTop: '2px' }}>{cat.value}%</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span className="gt-badge">{item.badge}</span>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--primary)' }}>
+                  {item.desc}
+                </span>
               </div>
-              <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: cat.color }} />
+              <span style={{ fontSize: '12px', color: 'var(--tertiary)' }}>
+                {item.time}
+              </span>
             </div>
           ))}
         </div>

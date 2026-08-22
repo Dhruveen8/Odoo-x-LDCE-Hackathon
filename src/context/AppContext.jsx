@@ -15,9 +15,9 @@ const CURRENCY_RATES = {
 };
 
 export function AppProvider({ children }) {
-  // Theme state
+  // Theme state — light is the new default
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('gt_theme') || 'dark';
+    return localStorage.getItem('gt_theme') || 'light';
   });
 
   useEffect(() => {
