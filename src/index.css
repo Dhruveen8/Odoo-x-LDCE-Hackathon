@@ -1,0 +1,298 @@
+/* ═══════════════════════════════════════════════════════════════
+   GlobeTrotter · Liquid Glass Design System
+   Apple iOS 26–inspired: iridescent refraction, wet-glass blur
+═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --font-sans:        'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-heading:     'Playfair Display', Georgia, serif;
+  --font-subheading:  'Cormorant Garamond', Georgia, serif;
+  --font-modern:      'Outfit', sans-serif;
+  --font-handwriting: 'Caveat', cursive;
+
+  /* ── App shell dimensions ── */
+  --sidebar-w:  220px;
+  --navbar-h:   64px;
+
+  /* ── Background ── */
+  --bg-app:       #0a0a12;
+  --bg-primary:   #0e0d1a;
+  --bg-secondary: #161525;
+  --bg-tertiary:  #1e1d2e;
+  --bg-card:      rgba(22,21,37,0.94);
+  --bg-hover:     rgba(255,255,255,0.06);
+
+  --border-subtle: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.18);
+
+  --text-primary:   #f0eeff;
+  --text-secondary: #a09cc0;
+  --text-muted:     #5a5575;
+  --text-inverse:   #0a0a12;
+
+  /* ── Brand ── */
+  --brand-violet:  #7c3aed;
+  --brand-indigo:  #6366f1;
+  --brand-purple:  #9333ea;
+  --brand-sky:     #38bdf8;
+  --brand-rose:    #f43f5e;
+  --brand-amber:   #f59e0b;
+  --brand-emerald: #10b981;
+
+  --gradient-brand:   linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+  --gradient-ocean:   linear-gradient(135deg, #38bdf8 0%, #6366f1 60%, #a855f7 100%);
+  --gradient-sunset:  linear-gradient(135deg, #f43f5e 0%, #f59e0b 60%, #6366f1 100%);
+  --gradient-hero:    linear-gradient(180deg, rgba(10,10,18,0.20) 0%, rgba(10,10,18,0.15) 40%, rgba(10,10,18,0.80) 100%);
+
+  /* ════════════════════════════════════════
+     LIQUID GLASS tokens
+     Layers: deep-blur base + colour tint + specular highlight rim
+  ════════════════════════════════════════ */
+
+  /* Dark liquid glass — navbar, sidebar, modals */
+  --lg-dark-bg:         rgba(14,13,26,0.70);
+  --lg-dark-blur:       blur(48px) saturate(200%) brightness(0.92);
+  --lg-dark-border:     rgba(255,255,255,0.11);
+  --lg-dark-highlight:  rgba(255,255,255,0.13); /* top rim highlight */
+  --lg-dark-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.13),
+    inset 0 -1px 0 rgba(0,0,0,0.30),
+    0 24px 64px rgba(0,0,0,0.55),
+    0 4px 16px rgba(0,0,0,0.35);
+  --lg-dark-tint:       rgba(99,102,241,0.06);  /* subtle violet tint */
+
+  /* Light liquid glass — cards on light bg */
+  --lg-light-bg:        rgba(255,255,255,0.62);
+  --lg-light-blur:      blur(40px) saturate(180%) brightness(1.08);
+  --lg-light-border:    rgba(255,255,255,0.75);
+  --lg-light-highlight: rgba(255,255,255,0.90);
+  --lg-light-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.90),
+    inset 0 -1px 0 rgba(0,0,0,0.06),
+    0 12px 40px rgba(0,0,0,0.14);
+
+  /* Active / pressed pill */
+  --pill-active-bg:     linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --pill-active-shadow: 0 4px 20px rgba(99,102,241,0.55);
+
+  /* ── Shadows ── */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.35);
+  --shadow-md: 0 6px 20px rgba(0,0,0,0.45);
+  --shadow-lg: 0 16px 48px rgba(0,0,0,0.55);
+  --shadow-xl: 0 28px 72px rgba(0,0,0,0.65);
+  --shadow-glow-brand: 0 0 48px rgba(99,102,241,0.40);
+
+  /* ── Radius ── */
+  --r-xs:   6px;
+  --r-sm:   10px;
+  --r-md:   16px;
+  --r-lg:   24px;
+  --r-xl:   36px;
+  --r-full: 9999px;
+}
+
+/* ────────────────────────── Reset ────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-app);
+  color: var(--text-primary);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+h1,h2,h3,h4,h5,h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+a { color: inherit; text-decoration: none; }
+button, input, select, textarea { font-family: inherit; font-size: inherit; outline: none; }
+
+/* ─────────────────────────────────────────────────────────────
+   LIQUID GLASS — Core Classes
+   
+   The effect has 4 visual layers:
+   1. Blurred translucent base
+   2. Colour tint (violet-indigo for dark theme)
+   3. Top highlight line (specular rim)
+   4. Outer shadow depth
+───────────────────────────────────────────────────────────── */
+.liquid-glass {
+  position: relative;
+  background: var(--lg-dark-bg);
+  backdrop-filter: var(--lg-dark-blur);
+  -webkit-backdrop-filter: var(--lg-dark-blur);
+  border: 1px solid var(--lg-dark-border);
+  box-shadow: var(--lg-dark-shadow);
+  /* Pseudo-element provides the violet colour-tint wash */
+}
+.liquid-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--lg-dark-tint);
+  pointer-events: none;
+  z-index: 0;
+}
+/* Top specular highlight line */
+.liquid-glass::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 12px; right: 12px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--lg-dark-highlight) 40%, var(--lg-dark-highlight) 60%, transparent 100%);
+  border-radius: 0 0 50% 50%;
+  pointer-events: none;
+  z-index: 1;
+}
+.liquid-glass > * { position: relative; z-index: 2; }
+
+/* Light variant */
+.liquid-glass-light {
+  background: var(--lg-light-bg);
+  backdrop-filter: var(--lg-light-blur);
+  -webkit-backdrop-filter: var(--lg-light-blur);
+  border: 1px solid var(--lg-light-border);
+  box-shadow: var(--lg-light-shadow);
+}
+
+/* Iridescent card — adds rainbow shimmer on hover */
+.liquid-glass-card {
+  position: relative;
+  background: rgba(22,21,37,0.82);
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    inset 0 -1px 0 rgba(0,0,0,0.25),
+    0 12px 40px rgba(0,0,0,0.50);
+  transition: box-shadow 0.35s, transform 0.35s, border-color 0.35s;
+  overflow: hidden;
+}
+.liquid-glass-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg,
+    rgba(99,102,241,0.08) 0%,
+    rgba(139,92,246,0.04) 40%,
+    rgba(56,189,248,0.06) 100%);
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none; z-index: 0;
+}
+.liquid-glass-card:hover::before { opacity: 1; }
+.liquid-glass-card:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.18),
+    0 24px 64px rgba(0,0,0,0.65),
+    0 0 0 1px rgba(99,102,241,0.25);
+  border-color: rgba(99,102,241,0.28);
+}
+.liquid-glass-card > * { position: relative; z-index: 1; }
+
+/* ── Legacy class aliases ── */
+.glass-panel      { background: var(--lg-dark-bg); backdrop-filter: var(--lg-dark-blur); -webkit-backdrop-filter: var(--lg-dark-blur); border: 1px solid var(--lg-dark-border); }
+.card-travel      { background: rgba(22,21,37,0.82); border: 1px solid rgba(255,255,255,0.09); border-radius: var(--r-lg); overflow: hidden; transition: transform 0.35s, box-shadow 0.35s; }
+.card-travel:hover{ transform: translateY(-7px); box-shadow: var(--shadow-xl); border-color: rgba(99,102,241,0.28); }
+
+/* ─────────────────────────────────────────────────────────────
+   TEXT GRADIENTS
+───────────────────────────────────────────────── */
+.text-gradient        { background: var(--gradient-brand);  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.text-gradient-ocean  { background: var(--gradient-ocean);  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.text-gradient-sunset { background: var(--gradient-sunset); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+/* ─────────────────────────────────────────────────────────────
+   BADGES
+───────────────────────────────────────────────── */
+.badge-luxury {
+  display: inline-block; font-family: var(--font-modern); font-size: 0.69rem;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em;
+  padding: 4px 12px; border-radius: var(--r-full);
+  background: rgba(99,102,241,0.18); color: #a5b4fc;
+  border: 1px solid rgba(99,102,241,0.30);
+}
+.badge-tag {
+  display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px;
+  font-size: 0.75rem; font-family: var(--font-modern); font-weight: 600;
+  border-radius: var(--r-full); background: rgba(255,255,255,0.07);
+  color: var(--text-secondary); border: 1px solid var(--border-subtle);
+}
+.badge-tag.primary { background: rgba(99,102,241,0.16); color: #a5b4fc; border-color: rgba(99,102,241,0.28); }
+.badge-tag.success { background: rgba(16,185,129,0.14); color: #6ee7b7; border-color: rgba(16,185,129,0.28); }
+.badge-tag.warning { background: rgba(245,158,11,0.14); color: #fcd34d; border-color: rgba(245,158,11,0.28); }
+.badge-tag.rose    { background: rgba(244,63,94,0.14);  color: #fda4af; border-color: rgba(244,63,94,0.28); }
+
+/* ─────────────────────────────────────────────────────────────
+   SCROLLBAR
+───────────────────────────────────────────────── */
+::-webkit-scrollbar            { width: 5px; height: 5px; }
+::-webkit-scrollbar-track      { background: transparent; }
+::-webkit-scrollbar-thumb      { background: rgba(255,255,255,0.12); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover{ background: rgba(99,102,241,0.50); }
+
+/* ─────────────────────────────────────────────────────────────
+   BUTTONS
+───────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 10px 22px; border-radius: var(--r-full); font-family: var(--font-modern);
+  font-weight: 600; cursor: pointer; border: none; letter-spacing: 0.01em;
+  transition: transform 0.22s cubic-bezier(0.4,0,0.2,1), box-shadow 0.22s, opacity 0.2s;
+  white-space: nowrap; position: relative; overflow: hidden;
+}
+.btn-primary {
+  background: var(--gradient-brand); color: #fff;
+  box-shadow: 0 6px 20px rgba(99,102,241,0.40);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(99,102,241,0.55); }
+.btn-secondary {
+  background: rgba(255,255,255,0.07); color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+}
+.btn-secondary:hover { background: rgba(255,255,255,0.12); transform: translateY(-1px); }
+.btn-ghost { background: transparent; color: var(--text-secondary); }
+.btn-ghost:hover { background: rgba(255,255,255,0.07); color: var(--text-primary); }
+.btn-white { background: rgba(255,255,255,0.95); color: #4f46e5; box-shadow: 0 6px 24px rgba(0,0,0,0.28); }
+.btn-white:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(0,0,0,0.38); }
+.btn-danger { background: rgba(244,63,94,0.12); color: #fda4af; border: 1px solid rgba(244,63,94,0.25); }
+.btn-danger:hover { background: rgba(244,63,94,0.85); color: #fff; }
+.btn-sm { padding: 7px 15px; font-size: 0.83rem; }
+.btn-lg { padding: 14px 32px; font-size: 1.05rem; }
+
+/* ─────────────────────────────────────────────────────────────
+   INPUT
+───────────────────────────────────────────────── */
+.input-field {
+  width: 100%; padding: 12px 18px;
+  background: rgba(255,255,255,0.06); border: 1.5px solid var(--border-subtle);
+  border-radius: var(--r-md); color: var(--text-primary);
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+.input-field::placeholder { color: var(--text-muted); }
+.input-field:focus { border-color: rgba(99,102,241,0.60); box-shadow: 0 0 0 3px rgba(99,102,241,0.16); }
+
+/* ─────────────────────────────────────────────────────────────
+   APP LAYOUT
+───────────────────────────────────────────────── */
+.app-root    { display: flex; min-height: 100vh; background: var(--bg-app); }
+.app-sidebar { width: var(--sidebar-w); flex-shrink: 0; }  /* spacer for fixed sidebar */
+.app-body    { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.app-navbar  { height: var(--navbar-h); flex-shrink: 0; }  /* spacer for fixed navbar */
+.page-wrapper{ flex: 1; }
+
+/* ─────────────────────────────────────────────────────────────
+   PARALLAX HELPER
+───────────────────────────────────────────────── */
+.parallax-container { position: relative; overflow: hidden; }
+
+@media (max-width: 900px) {
+  .hidden-mobile  { display: none !important; }
+  :root { --sidebar-w: 0px; }
+}
